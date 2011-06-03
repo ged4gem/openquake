@@ -227,6 +227,57 @@ $$;
 COMMENT ON FUNCTION check_magnitude_data() IS
 'Make sure that at least one magnitude value is set.';
 
+CREATE OR REPLACE FUNCTION eqged.make_ms_query(use_temp_table boolean) RETURNS text
+LANGUAGE plpgsql AS
+$$
+DECLARE
+        my_parent_type integer;
+        my_type integer;
+        counter integer := 1;
+        myrow RECORD;
+        myquery text := 'SELECT t1.mapping_scheme_src_id, ';
+        tname char(2);
+        oldtname char(2);
+        from_clause text := ' FROM ';
+        product text := '';
+        ms_table text;
+BEGIN
+  if use_temp_table THEN
+	ms_table := 'eqged_temp_mapping_scheme';
+  ELSE
+	ms_table := 'eqged.view_mapping_scheme';
+  END IF;
+
+  for myrow in execute
+    'select parent_ms_type_id, ms_type_id from ' || ms_table || ' group by parent_ms_type_id, ms_type_id order by parent_ms_type_id, ms_type_id'
+  loop
+     my_parent_type := myrow.parent_ms_type_id;
+     my_type := myrow.ms_type_id;
+     tname := 't' || counter; -- table identifier (e.g. t1)
+     myquery := myquery || tname || '.ms_type_id AS ' || tname || '_ms_type_id, ' || tname || '.ms_class_id AS ' || tname || '_ms_class_id, ' || tname || '.ms_name AS ' || tname || '_ms_name, ' || ' CASE WHEN ' || tname || '.ms_value IS NULL THEN 1 ELSE ' || tname || '.ms_value END AS ' || tname || '_ms_value, ';
+     
+     if counter > 1 then
+             from_clause := from_clause || ' LEFT JOIN ';
+        product := product || ' * ';
+     end if;
+
+     product := product || 'CASE WHEN ' || tname || '.ms_value IS NULL THEN 1 ELSE ' || tname || '.ms_value END';
+     from_clause := from_clause || '( SELECT * FROM ' || ms_table || ' WHERE parent_ms_type_id=' || my_parent_type || ' ) ' || tname;
+     
+    if counter > 1 then
+        from_clause := from_clause || ' ON ' || oldtname || '.ms_type_id=' || tname || '.parent_ms_type_id AND ' || oldtname || '.ms_class_id=' || tname || '.parent_ms_class_id AND ' || oldtname || '.mapping_scheme_src_id = ' || tname || '.mapping_scheme_src_id';
+    END IF;
+    
+    oldtname := tname;
+    counter := counter + 1;
+  end loop;
+  
+  myquery := myquery || product || ' AS ms_value' || from_clause;
+  
+  RETURN myquery;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION refresh_last_update() RETURNS TRIGGER
 LANGUAGE plpgsql AS
 $$

@@ -30,6 +30,21 @@ CREATE INDEX eqcat_catalog_time_idx on eqcat.catalog(time);
 CREATE INDEX eqcat_catalog_depth_idx on eqcat.catalog(depth);
 CREATE INDEX eqcat_catalog_point_idx ON eqcat.catalog USING gist(point);
 
+-- eqged geometry indexes
+CREATE INDEX eqged_agg_build_infra_src_the_geom_idx ON eqged.agg_build_infra_src USING gist (the_geom);
+CREATE INDEX eqged_lat_lon_points_the_geom_idx ON eqged.lat_lon_points USING gist (the_geom);
+CREATE INDEX eqged_gadm_countries_the_geom_idx ON eqged.gadm_countries USING gist (the_geom);
+
+-- eqged indexes for foreign keys
+CREATE INDEX eqged_lat_lon_points_organization_id_idx ON eqged.lat_lon_points USING btree (organization_id);
+CREATE INDEX eqged_cresta_zones_cresta_countries_country_idx ON eqged.cresta_zones USING btree (country);
+CREATE INDEX eqged_lat_lon_points_cresta_zones_cresta_subzone_idx ON eqged.lat_lon_points USING btree (cresta_subzone);
+CREATE INDEX eqged_lat_lon_points_cresta_zones_cresta_zone_idx ON eqged.lat_lon_points USING btree (cresta_zone);
+CREATE INDEX eqged_lat_lon_points_gadm_admin_1_first_admin_idx ON eqged.lat_lon_points USING btree (first_admin);
+CREATE INDEX eqged_lat_lon_points_gadm_admin_2_second_admin_idx ON eqged.lat_lon_points USING btree (second_admin);
+CREATE INDEX eqged_lat_lon_points_gadm_countries_country_idx ON eqged.lat_lon_points USING btree (country);
+CREATE INDEX eqged_pop_allocation_gadm_countries_country_idx ON eqged.pop_allocation USING btree (country);
+
 -- pshai.fault_edge
 CREATE INDEX pshai_fault_edge_bottom_idx ON pshai.fault_edge USING gist(bottom);
 CREATE INDEX pshai_fault_edge_top_idx ON pshai.fault_edge USING gist(top);
