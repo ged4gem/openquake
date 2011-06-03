@@ -24,6 +24,7 @@
 ------------------------------------------------------------------------
 CREATE SCHEMA admin;
 CREATE SCHEMA eqcat;
+CREATE SCHEMA eqged;
 CREATE SCHEMA pshai;
 CREATE SCHEMA uiapi;
 
