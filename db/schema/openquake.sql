@@ -149,17 +149,17 @@ CREATE DOMAIN eqged.proportion AS double precision
       CHECK (((VALUE >= (0)::double precision) AND (VALUE <= (1)::double precision)));
 
 -- poor man's taxonomy enum
-CREATE DOMAIN eqged.taxonomy AS character varying(10)
+CREATE DOMAIN eqged.taxonomy AS VARCHAR(10)
     CONSTRAINT taxonomy_check CHECK (((VALUE)::text = 'PAGER'::text));
 
 -- aggregate building infrastructure
 CREATE TABLE eqged.agg_build_infra (
     id bigint PRIMARY KEY,
     lat_lon_points_id integer NOT NULL,
-    struct_ms_class character varying,
-    height_ms_class character varying,
-    occ_ms_class character varying,
-    age_ms_class character varying,
+    struct_ms_class VARCHAR,
+    height_ms_class VARCHAR,
+    occ_ms_class VARCHAR,
+    age_ms_class VARCHAR,
     num_buildings double precision,
     struct_area double precision,
     day_pop double precision NOT NULL,
@@ -185,7 +185,7 @@ CREATE TABLE eqged.agg_build_infra_src (
 -- CRESTA countries
 CREATE TABLE eqged.cresta_countries (
     country character(3) PRIMARY KEY,
-    name character varying NOT NULL,
+    name VARCHAR NOT NULL,
     zone_count integer,
     sub_zone_count integer
 ) TABLESPACE eqged_ts;
@@ -194,34 +194,34 @@ CREATE TABLE eqged.cresta_countries (
 CREATE TABLE eqged.cresta_zones (
     id integer PRIMARY KEY,
     country character(3),
-    cresta_id character varying NOT NULL,
-    zone_name character varying NOT NULL,
-    zone_number character varying NOT NULL,
+    cresta_id VARCHAR NOT NULL,
+    zone_name VARCHAR NOT NULL,
+    zone_number VARCHAR NOT NULL,
     is_subzone boolean DEFAULT false NOT NULL
 ) TABLESPACE eqged_ts;
 
 -- GADM first level boundaries
 CREATE TABLE eqged.gadm_admin_1 (
     id integer PRIMARY KEY,
-    first_name character varying,
-    first_varname character varying,
-    first_type character varying,
-    first_engtype character varying
+    first_name VARCHAR,
+    first_varname VARCHAR,
+    first_type VARCHAR,
+    first_engtype VARCHAR
 ) TABLESPACE eqged_ts;
 
 -- GADM second level boundaries
 CREATE TABLE eqged.gadm_admin_2 (
     id integer PRIMARY KEY,
-    first_name character varying,
-    first_varname character varying,
-    first_type character varying,
-    first_engtype character varying
+    first_name VARCHAR,
+    first_varname VARCHAR,
+    first_type VARCHAR,
+    first_engtype VARCHAR
 ) TABLESPACE eqged_ts;
 
 -- GADM country boundaries
 CREATE TABLE eqged.gadm_countries (
     country character(3) PRIMARY KEY,
-    country_name character varying NOT NULL,
+    country_name VARCHAR NOT NULL,
     shape_leng numeric,
     shape_area numeric,
     the_geom geometry,
@@ -278,8 +278,8 @@ CREATE TABLE eqged.mapping_scheme (
 CREATE TABLE eqged.mapping_scheme_classes (
     id integer PRIMARY KEY,
     ms_type_id integer,
-    name character varying NOT NULL,
-    description character varying,
+    name VARCHAR NOT NULL,
+    description VARCHAR,
     taxonomy eqged.taxonomy,
     ms_class_id integer
 ) TABLESPACE eqged_ts;
@@ -287,19 +287,19 @@ CREATE TABLE eqged.mapping_scheme_classes (
 -- mapping scheme sources
 CREATE TABLE eqged.mapping_scheme_src (
     id integer PRIMARY KEY,
-    source character varying,
+    source VARCHAR,
     date_created timestamp without time zone DEFAULT timezone('UTC'::text, now()) NOT NULL,
     oq_user_id integer,
-    use_notes character varying,
-    quality character varying,
+    use_notes VARCHAR,
+    quality VARCHAR,
     taxonomy eqged.taxonomy
 ) TABLESPACE eqged_ts;
 
 -- mapping scheme types
 CREATE TABLE eqged.mapping_scheme_types (
     id integer PRIMARY KEY,
-    name character varying NOT NULL,
-    description character varying
+    name VARCHAR NOT NULL,
+    description VARCHAR
 ) TABLESPACE eqged_ts;
 
 -- population allocation
@@ -315,7 +315,7 @@ CREATE TABLE eqged.pop_allocation (
 -- study regions
 CREATE TABLE eqged.study_regions (
     id integer PRIMARY KEY,
-    name character varying(50),
+    name VARCHAR(50),
     oq_user_id integer,
     date_created timestamp without time zone DEFAULT timezone('UTC'::text, now()) NOT NULL,
     taxonomy taxonomy,
