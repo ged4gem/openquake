@@ -173,7 +173,7 @@ CREATE TABLE eqged.agg_build_infra_src (
     id integer PRIMARY KEY,
     the_geom public.geometry,
     mapping_scheme_src_id integer,
-    study_regions_id integer,
+    study_region_id integer,
     CONSTRAINT enforce_dims_the_geom
         CHECK ((public.st_ndims(the_geom) = 2)),
     CONSTRAINT enforce_geotype_the_geom
@@ -269,13 +269,13 @@ CREATE TABLE eqged.lat_lon_points (
 CREATE TABLE eqged.mapping_scheme (
     id bigint PRIMARY KEY,
     mapping_scheme_src_id integer NOT NULL,
-    parent_ms_class_id integer,
+    parent_ms_id integer,
     ms_class_id integer,
     ms_value double precision
 ) TABLESPACE eqged_ts;
 
 -- mapping scheme classes
-CREATE TABLE eqged.mapping_scheme_classes (
+CREATE TABLE eqged.mapping_scheme_class (
     id integer PRIMARY KEY,
     ms_type_id integer,
     name VARCHAR NOT NULL,
@@ -289,14 +289,16 @@ CREATE TABLE eqged.mapping_scheme_src (
     id integer PRIMARY KEY,
     source VARCHAR,
     date_created timestamp without time zone DEFAULT timezone('UTC'::text, now()) NOT NULL,
-    oq_user_id integer,
+    data_source VARCHAR,
+    data_source_date timestamp without time zone,
     use_notes VARCHAR,
     quality VARCHAR,
+    oq_user_id integer,
     taxonomy eqged.taxonomy
 ) TABLESPACE eqged_ts;
 
 -- mapping scheme types
-CREATE TABLE eqged.mapping_scheme_types (
+CREATE TABLE eqged.mapping_scheme_type (
     id integer PRIMARY KEY,
     name VARCHAR NOT NULL,
     description VARCHAR
@@ -313,19 +315,22 @@ CREATE TABLE eqged.pop_allocation (
 ) TABLESPACE eqged_ts;
 
 -- study regions
-CREATE TABLE eqged.study_regions (
+CREATE TABLE eqged.study_region (
     id integer PRIMARY KEY,
     name VARCHAR(50),
-    oq_user_id integer,
     date_created timestamp without time zone DEFAULT timezone('UTC'::text, now()) NOT NULL,
     taxonomy taxonomy,
-    notes text
+    notes text,
+    oq_user_id integer
 ) TABLESPACE eqged_ts;
 
 -- mapping scheme view
-CREATE VIEW eqged.view_mapping_scheme AS
-    SELECT t1.id, t1.mapping_scheme_src_id, t2.ms_type_id AS parent_ms_type_id, t2.ms_class_id AS parent_ms_class_id, t2.name AS parent_ms_name, t3.ms_type_id, t3.ms_class_id, t3.name AS ms_name, t1.ms_value
-      FROM ((mapping_scheme t1 JOIN mapping_scheme_classes t2 ON ((t1.parent_ms_class_id = t2.id))) JOIN mapping_scheme_classes t3 ON ((t1.ms_class_id = t3.id)));
+CREATE VIEW eqged.view_mapping_scheme AS 
+    SELECT ms1.id, ms1.mapping_scheme_src_id, ms2.id AS parent_ms_id, c2.ms_type_id AS parent_ms_type_id, c2.ms_class_id AS parent_ms_class_id, c2.name AS parent_ms_name, c1.ms_type_id, c1.ms_class_id, c1.name AS ms_name, ms1.ms_value
+      FROM eqged.mapping_scheme ms1
+      JOIN eqged.mapping_scheme_class c1 ON ms1.ms_class_id = c1.id
+      LEFT JOIN eqged.mapping_scheme ms2 ON ms1.parent_ms_id = ms2.id
+      LEFT JOIN eqged.mapping_scheme_class c2 ON ms2.ms_class_id = c2.id;
 
 -- rupture
 CREATE TABLE pshai.rupture (
@@ -1006,7 +1011,7 @@ FOREIGN KEY (mapping_scheme_src_id) REFERENCES eqged.mapping_scheme_src(id) ON U
 ALTER TABLE eqged.mapping_scheme_src ADD CONSTRAINT eqged_oq_user_mapping_scheme_src_fk
 FOREIGN KEY (oq_user_id) REFERENCES admin.oq_user(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
-ALTER TABLE eqged.study_regions ADD CONSTRAINT eqged_oq_user_study_region_fk
+ALTER TABLE eqged.study_region ADD CONSTRAINT eqged_oq_user_study_region_fk
 FOREIGN KEY (oq_user_id) REFERENCES admin.oq_user(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 ALTER TABLE eqged.lat_lon_points ADD CONSTRAINT eqged_organization_lat_lon_points_fk
@@ -1015,17 +1020,17 @@ FOREIGN KEY (organization_id) REFERENCES admin.organization(id) ON UPDATE CASCAD
 ALTER TABLE eqged.pop_allocation ADD CONSTRAINT eqged_pop_allocation_gadm_countries_country_fk
 FOREIGN KEY (country) REFERENCES eqged.gadm_countries(country);
 
-ALTER TABLE eqged.agg_build_infra_src ADD CONSTRAINT eqged_study_regions_agg_build_infra_src_fk
-FOREIGN KEY (study_regions_id) REFERENCES eqged.study_regions(id) ON UPDATE CASCADE ON DELETE SET NULL;
+ALTER TABLE eqged.agg_build_infra_src ADD CONSTRAINT eqged_study_region_agg_build_infra_src_fk
+FOREIGN KEY (study_region_id) REFERENCES eqged.study_region(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
-ALTER TABLE eqged.mapping_scheme_classes ADD CONSTRAINT mapping_scheme_classes_mapping_scheme_types_id_fk
-FOREIGN KEY (ms_type_id) REFERENCES eqged.mapping_scheme_types(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE eqged.mapping_scheme_classes ADD CONSTRAINT mapping_scheme_class_mapping_scheme_type_id_fk
+FOREIGN KEY (ms_type_id) REFERENCES eqged.mapping_scheme_type(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE eqged.mapping_scheme ADD CONSTRAINT mapping_scheme_mapping_scheme_classes_id_fk
-FOREIGN KEY (ms_class_id) REFERENCES eqged.mapping_scheme_classes(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE eqged.mapping_scheme ADD CONSTRAINT mapping_scheme_mapping_scheme_class_id_fk
+FOREIGN KEY (ms_class_id) REFERENCES eqged.mapping_scheme_class(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
-ALTER TABLE eqged.mapping_scheme ADD CONSTRAINT mapping_scheme_mapping_scheme_classes_parent_id_fk
-FOREIGN KEY (parent_ms_class_id) REFERENCES eqged.mapping_scheme_classes(id) ON UPDATE CASCADE ON DELETE CASCADE;
+ALTER TABLE eqged.mapping_scheme ADD CONSTRAINT mapping_scheme_mapping_scheme_parent_id_fk
+FOREIGN KEY (parent_ms_id) REFERENCES eqged.mapping_scheme(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
 ALTER TABLE eqged.mapping_scheme ADD CONSTRAINT mapping_scheme_mapping_scheme_src_id_fk
 FOREIGN KEY (mapping_scheme_src_id) REFERENCES eqged.mapping_scheme_src(id) ON UPDATE CASCADE ON DELETE CASCADE;
