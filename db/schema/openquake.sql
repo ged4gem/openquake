@@ -183,17 +183,17 @@ CREATE TABLE eqged.agg_build_infra_src (
 ) TABLESPACE eqged_ts;
 
 -- CRESTA countries
-CREATE TABLE eqged.cresta_countries (
-    country character(3) PRIMARY KEY,
+CREATE TABLE eqged.cresta_country (
+    id integer PRIMARY KEY,
     name VARCHAR NOT NULL,
     zone_count integer,
     sub_zone_count integer
 ) TABLESPACE eqged_ts;
 
 -- CRESTA zones
-CREATE TABLE eqged.cresta_zones (
+CREATE TABLE eqged.cresta_zone (
     id integer PRIMARY KEY,
-    country character(3),
+    country_id integer NOT NULL,
     cresta_id VARCHAR NOT NULL,
     zone_name VARCHAR NOT NULL,
     zone_number VARCHAR NOT NULL,
@@ -203,28 +203,52 @@ CREATE TABLE eqged.cresta_zones (
 -- GADM first level boundaries
 CREATE TABLE eqged.gadm_admin_1 (
     id integer PRIMARY KEY,
-    first_name VARCHAR,
-    first_varname VARCHAR,
-    first_type VARCHAR,
-    first_engtype VARCHAR
+    name VARCHAR,
+    varname VARCHAR,
+    iso character(3),
+    type VARCHAR,
+    engtype VARCHAR,
+    the_geom public.geometry NOT NULL,
+    shape_perimeter numeric,
+    shape_area numeric,
+    date date,
+    CONSTRAINT enforce_dims_the_geom
+        CHECK ((public.st_ndims(the_geom) = 2)),
+    CONSTRAINT enforce_geotype_the_geom
+        CHECK (((public.geometrytype(the_geom) = 'POINT'::text) AND (the_geom IS NOT NULL))),
+    CONSTRAINT enforce_srid_the_geom
+        CHECK ((public.st_srid(the_geom) = 4326)),
 ) TABLESPACE eqged_ts;
 
 -- GADM second level boundaries
 CREATE TABLE eqged.gadm_admin_2 (
     id integer PRIMARY KEY,
-    first_name VARCHAR,
-    first_varname VARCHAR,
-    first_type VARCHAR,
-    first_engtype VARCHAR
+    name VARCHAR,
+    varname VARCHAR,
+    type VARCHAR,
+    engtype VARCHAR,
+    the_geom public.geometry NOT NULL,
+    shape_perimeter numeric,
+    shape_area numeric,
+    date date,
+    CONSTRAINT enforce_dims_the_geom
+        CHECK ((public.st_ndims(the_geom) = 2)),
+    CONSTRAINT enforce_geotype_the_geom
+        CHECK (((public.geometrytype(the_geom) = 'POINT'::text) AND (the_geom IS NOT NULL))),
+    CONSTRAINT enforce_srid_the_geom
+        CHECK ((public.st_srid(the_geom) = 4326)),
 ) TABLESPACE eqged_ts;
 
 -- GADM country boundaries
-CREATE TABLE eqged.gadm_countries (
-    country character(3) PRIMARY KEY,
-    country_name VARCHAR NOT NULL,
-    shape_leng numeric,
+CREATE TABLE eqged.gadm_country (
+    id integer PRIMARY KEY,
+    name VARCHAR NOT NULL,
+    alias VARCHAR,
+    iso character(3),
+    the_geom public.geometry NOT NULL,
+    shape_perimeter numeric,
     shape_area numeric,
-    the_geom geometry,
+    date date,
     CONSTRAINT enforce_dims_the_geom
         CHECK (st_ndims(the_geom) = 2),
     CONSTRAINT enforce_geotype_the_geom
@@ -307,7 +331,7 @@ CREATE TABLE eqged.mapping_scheme_type (
 -- population allocation
 CREATE TABLE eqged.pop_allocation (
     id integer PRIMARY KEY,
-    country character(3) NOT NULL,
+    country_id character(3) NOT NULL,
     is_urban boolean NOT NULL,
     day_pop_ratio double precision,
     night_pop_ratio double precision,
@@ -1003,7 +1027,7 @@ ALTER TABLE eqged.lat_lon_points ADD CONSTRAINT eqged_lat_lon_points_gadm_admin_
 FOREIGN KEY (second_admin) REFERENCES eqged.gadm_admin_2(id);
 
 ALTER TABLE eqged.lat_lon_points ADD CONSTRAINT eqged_lat_lon_points_gadm_countries_country_fk
-FOREIGN KEY (country) REFERENCES eqged.gadm_countries(country);
+FOREIGN KEY (country) REFERENCES eqged.gadm_country(country);
 
 ALTER TABLE eqged.agg_build_infra_src ADD CONSTRAINT eqged_mapping_scheme_src_agg_build_infra_src_fk
 FOREIGN KEY (mapping_scheme_src_id) REFERENCES eqged.mapping_scheme_src(id) ON UPDATE CASCADE ON DELETE SET NULL;
@@ -1017,8 +1041,8 @@ FOREIGN KEY (oq_user_id) REFERENCES admin.oq_user(id) ON UPDATE CASCADE ON DELET
 ALTER TABLE eqged.lat_lon_points ADD CONSTRAINT eqged_organization_lat_lon_points_fk
 FOREIGN KEY (organization_id) REFERENCES admin.organization(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
-ALTER TABLE eqged.pop_allocation ADD CONSTRAINT eqged_pop_allocation_gadm_countries_country_fk
-FOREIGN KEY (country) REFERENCES eqged.gadm_countries(country);
+ALTER TABLE eqged.pop_allocation ADD CONSTRAINT eqged_pop_allocation_gadm_country_fk
+FOREIGN KEY (country_id) REFERENCES eqged.gadm_country(id);
 
 ALTER TABLE eqged.agg_build_infra_src ADD CONSTRAINT eqged_study_region_agg_build_infra_src_fk
 FOREIGN KEY (study_region_id) REFERENCES eqged.study_region(id) ON UPDATE CASCADE ON DELETE SET NULL;
