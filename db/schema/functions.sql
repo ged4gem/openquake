@@ -227,7 +227,7 @@ $$;
 COMMENT ON FUNCTION check_magnitude_data() IS
 'Make sure that at least one magnitude value is set.';
 
-CREATE OR REPLACE FUNCTION eqged.make_ms_query(use_temp_table boolean) RETURNS text
+CREATE OR REPLACE FUNCTION eqged_make_ms_query(use_temp_table boolean) RETURNS text
 LANGUAGE plpgsql AS
 $$
 DECLARE

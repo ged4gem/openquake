@@ -33,44 +33,9 @@ CREATE INDEX eqcat_catalog_point_idx ON eqcat.catalog USING gist(point);
 -- eqged geometry indexes
 CREATE INDEX eqged_agg_build_infra_src_the_geom_idx ON eqged.agg_build_infra_src USING gist(the_geom);
 CREATE INDEX eqged_grid_point_the_geom_idx ON eqged.grid_point USING gist(the_geom);
-CREATE INDEX eqged_gadm_country_the_geom_idx ON eqged.gadm_admin_1 USING gist(the_geom);
-CREATE INDEX eqged_gadm_country_the_geom_idx ON eqged.gadm_admin_2 USING gist(the_geom);
+CREATE INDEX eqged_gadm_admin_1_the_geom_idx ON eqged.gadm_admin_1 USING gist(the_geom);
+CREATE INDEX eqged_gadm_admin_2_the_geom_idx ON eqged.gadm_admin_2 USING gist(the_geom);
 CREATE INDEX eqged_gadm_country_the_geom_idx ON eqged.gadm_country USING gist(the_geom);
-
--- eqged indexes for foreign keys
-CREATE INDEX eqged_agg_build_infra_agg_build_infra_src_id_idx ON eqged.agg_build_infra(agg_build_infra_src_id);
-CREATE INDEX eqged_agg_build_infra_grid_point_id_idx ON eqged.agg_build_infra(grid_point_id);
-CREATE INDEX eqged_agg_build_infra_pop_agg_build_infra_id_idx ON eqged.agg_build_infra_pop(agg_build_infra_id);
-CREATE INDEX eqged_agg_build_infra_pop_country_id_idx ON eqged.agg_build_infra_pop(country_id);
-CREATE INDEX eqged_agg_build_infra_pop_grid_point_id_idx ON eqged.agg_build_infra_pop(grid_point_id);
-CREATE INDEX eqged_agg_build_infra_pop_population_src_id_idx ON eqged.agg_build_infra_pop(population_src_id);
-CREATE INDEX eqged_agg_build_infra_pop_ratio_agg_build_infra_id_idx ON eqged.agg_build_infra_pop_ratio(agg_build_infra_id);
-CREATE INDEX eqged_agg_build_infra_pop_ratio_country_id_idx ON eqged.agg_build_infra_pop_ratio(country_id);
-CREATE INDEX eqged_agg_build_infra_pop_ratio_grid_point_id_idx ON eqged.agg_build_infra_pop_ratio(grid_point_id);
-CREATE INDEX eqged_agg_build_infra_src_mapping_scheme_src_id_idx ON eqged.agg_build_infra_src(mapping_scheme_src_id);
-CREATE INDEX eqged_agg_build_infra_src_study_region_id_idx ON eqged.agg_build_infra_src(study_region_id);
-CREATE INDEX eqged_cresta_country_country_id_idx ON eqged.cresta_country(country_id);
-CREATE INDEX eqged_cresta_zone_country_id_idx ON eqged.cresta_zone(country_id);
-CREATE INDEX eqged_grid_point_admin_1_admin_1_id ON eqged.grid_point_admin_1(admin_1_id);
-CREATE INDEX eqged_grid_point_admin_1_grid_point_id ON eqged.grid_point_admin_1(grid_point_id);
-CREATE INDEX eqged_grid_point_admin_2_admin_1_id ON eqged.grid_point_admin_2(admin_2_id);
-CREATE INDEX eqged_grid_point_admin_2_grid_point_id ON eqged.grid_point_admin_2(grid_point_id);
-CREATE INDEX eqged_grid_point_admin_3_admin_1_id ON eqged.grid_point_admin_3(admin_3_id);
-CREATE INDEX eqged_grid_point_admin_3_grid_point_id ON eqged.grid_point_admin_3(grid_point_id);
-CREATE INDEX eqged_grid_point_country_admin_1_id ON eqged.grid_point_country(country_id);
-CREATE INDEX eqged_grid_point_country_grid_point_id ON eqged.grid_point_country(grid_point_id);
-CREATE INDEX eqged_grid_point_cresta_zone_idx ON eqged.grid_point(cresta_zone);
-CREATE INDEX eqged_grid_point_cresta_subzone_idx ON eqged.grid_point(cresta_subzone);
-CREATE INDEX eqged_grid_point_organization_id_idx ON eqged.grid_point(organization_id);
-CREATE INDEX eqged_mapping_scheme_mapping_scheme_src_id_idx ON eqged.mapping_scheme(mapping_scheme_src_id);
-CREATE INDEX eqged_mapping_scheme_ms_class_id_idx ON eqged.mapping_scheme(ms_class_id);
-CREATE INDEX eqged_mapping_scheme_parent_ms_id_idx ON eqged.mapping_scheme(parent_ms_id);
-CREATE INDEX eqged_mapping_scheme_class_ms_type_id_idx ON eqged.mapping_scheme(ms_type_id);
-CREATE INDEX eqged_mapping_scheme_src_oq_user_id_idx ON eqged.mapping_scheme_src(oq_user_id);
-CREATE INDEX eqged_population_grid_point_id_idx ON eqged.population(grid_point_id);
-CREATE INDEX eqged_population_population_src_id_idx ON eqged.population(population_src_id);
-CREATE INDEX eqged_pop_allocation_country_id_idx ON eqged.pop_allocation(country_id);
-CREATE INDEX eqged_study_region_oq_user_id_idx ON eqged.study_region(oq_user_id);
 
 -- pshai.fault_edge
 CREATE INDEX pshai_fault_edge_bottom_idx ON pshai.fault_edge USING gist(bottom);
