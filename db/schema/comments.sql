@@ -21,6 +21,7 @@
 
 COMMENT ON SCHEMA admin IS 'Administrative data';
 COMMENT ON SCHEMA eqcat IS 'Earthquake catalog';
+COMMENT ON SCHEMA eqged IS 'earthquake global exposure database';
 COMMENT ON SCHEMA pshai IS 'PSHA input model';
 COMMENT ON SCHEMA uiapi IS 'Data required by the API presented to the various OpenQuake UIs';
 
@@ -48,6 +49,18 @@ COMMENT ON COLUMN eqcat.surface.semi_major IS 'Semi-major axis: The longest radi
 
 COMMENT ON VIEW eqcat.catalog_allfields IS 'A global catalog view, needed for geonode integration';
 
+COMMENT ON TABLE eqged.agg_build_infra IS 'result of mapping scheme assignment for grid_point. each lat_lon_point can have multiple records here';
+COMMENT ON COLUMN eqged.agg_build_infra.struct_ms_class IS 'structure class based on mapping scheme used.';
+COMMENT ON COLUMN eqged.agg_build_infra.height_ms_class IS 'height class based on mapping scheme used.';
+COMMENT ON COLUMN eqged.agg_build_infra.occ_ms_class IS 'occupancy class based on mapping scheme used.';
+COMMENT ON COLUMN eqged.agg_build_infra.age_ms_class IS 'age class based on mapping scheme used.';
+COMMENT ON COLUMN eqged.agg_build_infra.num_buildings IS 'number of buildings for matching classification (struct, height, occ, age)';
+
+COMMENT ON TABLE eqged.agg_build_infra_src IS 'metadata describing how the numbers in agg_build_infra were calculated';
+COMMENT ON COLUMN eqged.agg_build_infra_src.the_geom IS 'geometry of area within the study region to which the selected mapping scheme is applied';
+
+COMMENT ON TABLE eqged.grid_point IS 'GEM proposed 30 sec arc grid';
+
 COMMENT ON TABLE eqged.mapping_scheme IS 'mapping scheme table storing all entries of a mapping scheme tree. this table is designed to be flexible in order to store MS tree of arbitrary height, which different type of nodes at each level. see documentation at <URL> for detail explanation of mapping scheme concept';
 COMMENT ON COLUMN eqged.mapping_scheme.parent_ms_id IS 'pointer to parent mapping scheme record';
 COMMENT ON COLUMN eqged.mapping_scheme.ms_class_id IS 'classification';
@@ -72,6 +85,11 @@ COMMENT ON COLUMN eqged.mapping_scheme_type.name IS 'short name description of t
 - occupancy
 ...'; 
 COMMENT ON COLUMN eqged.mapping_scheme_type.description IS 'detail description of the mapping type. should provide hint of requirements for using the type of mapping.';
+
+COMMENT ON TABLE eqged.pop_allocation IS 'lookup table to allocate portion of total population according to time of day and urban/rural status for each country. This table is based on PAGER';
+COMMENT ON COLUMN eqged.pop_allocation.day_pop_ratio IS 'ratio of total population assigned as day time non-residential (working) ';
+COMMENT ON COLUMN eqged.pop_allocation.night_pop_ratio IS 'ratio of total population for night time residential (at home)';
+COMMENT ON COLUMN eqged.pop_allocation.transit_pop_ratio IS 'ratio of total population for transit time (on the road)';
 
 COMMENT ON TABLE eqged.study_region IS 'metadata describing the region to generate exposure';
 
