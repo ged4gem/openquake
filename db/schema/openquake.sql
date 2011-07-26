@@ -157,7 +157,16 @@ CREATE TABLE eqged.admin_3 (
     id integer PRIMARY KEY,
     name VARCHAR,
     varname VARCHAR,
-    date date NOT NULL
+    the_geom public.geometry NOT NULL,
+    shape_perimeter numeric,
+    shape_area numeric,
+    date date,
+    CONSTRAINT enforce_dims_the_geom
+        CHECK ((public.st_ndims(the_geom) = 2)),
+    CONSTRAINT enforce_geotype_the_geom
+        CHECK (((public.geometrytype(the_geom) = 'POINT'::text) AND (the_geom IS NOT NULL))),
+    CONSTRAINT enforce_srid_the_geom
+        CHECK ((public.st_srid(the_geom) = 4326))
 ) TABLESPACE eqged_ts;
 
 -- aggregate building infrastructure
