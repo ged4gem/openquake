@@ -176,24 +176,24 @@ CREATE TABLE eqged.agg_build_infra (
 -- aggregate building infrastructure population values
 CREATE TABLE eqged.agg_build_infra_pop (
     agg_build_infra_id bigint NOT NULL,
-    country_id integer NOT NULL,
+    gadm_country_id integer NOT NULL,
     grid_point_id integer NOT NULL,
     population_src_id integer NOT NULL,
     day_pop double precision NOT NULL,
     night_pop double precision NOT NULL,
     transit_pop double precision NOT NULL,
-    PRIMARY KEY(agg_build_infra_id, country_id, grid_point_id, population_src_id)
+    PRIMARY KEY(agg_build_infra_id, gadm_country_id, grid_point_id, population_src_id)
 ) TABLESPACE eqged_ts;
 
 -- aggregate building infrastructure population ratios
 CREATE TABLE eqged.agg_build_infra_pop_ratio (
     agg_build_infra_id bigint NOT NULL,
-    country_id integer NOT NULL,
+    gadm_country_id integer NOT NULL,
     grid_point_id integer NOT NULL,
     day_pop_ratio eqged.proportion NOT NULL,
     night_pop_ratio eqged.proportion NOT NULL,
     transit_pop_ratio eqged.proportion NOT NULL,
-    PRIMARY KEY(agg_build_infra_id, country_id, grid_point_id)
+    PRIMARY KEY(agg_build_infra_id, gadm_country_id, grid_point_id)
 ) TABLESPACE eqged_ts;
 
 -- aggregate building infrastructure source
@@ -215,7 +215,7 @@ CREATE TABLE eqged.agg_build_infra_src (
 
 -- CRESTA countries
 CREATE TABLE eqged.cresta_country (
-    country_id integer PRIMARY KEY,
+    gadm_country_id integer PRIMARY KEY,
     name VARCHAR NOT NULL,
     zone_count integer,
     sub_zone_count integer
@@ -224,7 +224,7 @@ CREATE TABLE eqged.cresta_country (
 -- CRESTA zones
 CREATE TABLE eqged.cresta_zone (
     id integer PRIMARY KEY,
-    country_id integer NOT NULL,
+    gadm_country_id integer NOT NULL,
     cresta_id VARCHAR NOT NULL,
     zone_name VARCHAR NOT NULL,
     zone_number VARCHAR NOT NULL,
@@ -314,14 +314,14 @@ CREATE TABLE eqged.grid_point (
 
 CREATE TABLE eqged.grid_point_admin_1 (
     grid_point_id integer NOT NULL,
-    admin_1_id integer NOT NULL,
-    PRIMARY KEY(grid_point_id, admin_1_id)
+    gadm_admin_1_id integer NOT NULL,
+    PRIMARY KEY(grid_point_id, gadm_admin_1_id)
 ) TABLESPACE eqged_ts;
 
 CREATE TABLE eqged.grid_point_admin_2 (
     grid_point_id integer NOT NULL,
-    admin_2_id integer NOT NULL,
-    PRIMARY KEY(grid_point_id, admin_2_id)
+    gadm_admin_2_id integer NOT NULL,
+    PRIMARY KEY(grid_point_id, gadm_admin_2_id)
 ) TABLESPACE eqged_ts;
 
 CREATE TABLE eqged.grid_point_admin_3 (
@@ -332,8 +332,8 @@ CREATE TABLE eqged.grid_point_admin_3 (
 
 CREATE TABLE eqged.grid_point_country (
     grid_point_id integer NOT NULL,
-    country_id integer NOT NULL,
-    PRIMARY KEY(grid_point_id, country_id)
+    gadm_country_id integer NOT NULL,
+    PRIMARY KEY(grid_point_id, gadm_country_id)
 ) TABLESPACE eqged_ts;
 
 -- mapping scheme
@@ -396,7 +396,7 @@ CREATE TABLE eqged.population_src (
 -- population allocation
 CREATE TABLE eqged.pop_allocation (
     id integer PRIMARY KEY,
-    country_id integer NOT NULL,
+    gadm_country_id integer NOT NULL,
     is_urban boolean NOT NULL,
     day_pop_ratio eqged.proportion,
     night_pop_ratio eqged.proportion,
@@ -1074,7 +1074,7 @@ ALTER TABLE eqged.agg_build_infra ADD CONSTRAINT eqged_agg_build_infra_agg_build
 FOREIGN KEY (agg_build_infra_src_id) REFERENCES eqged.agg_build_infra_src(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 ALTER TABLE eqged.agg_build_infra_pop ADD CONSTRAINT eqged_agg_build_infra_pop_agg_build_infra_pop_ratio_fk
-FOREIGN KEY (agg_build_infra_id, country_id, grid_point_id) REFERENCES eqged.agg_build_infra_pop_ratio(agg_build_infra_id, country_id, grid_point_id);
+FOREIGN KEY (agg_build_infra_id, gadm_country_id, grid_point_id) REFERENCES eqged.agg_build_infra_pop_ratio(agg_build_infra_id, gadm_country_id, grid_point_id);
 
 ALTER TABLE eqged.agg_build_infra_pop ADD CONSTRAINT eqged_agg_build_infra_pop_population_fk
 FOREIGN KEY (grid_point_id, population_src_id) REFERENCES eqged.population(grid_point_id, population_src_id);
@@ -1083,7 +1083,7 @@ ALTER TABLE eqged.agg_build_infra_pop_ratio ADD CONSTRAINT eqged_agg_build_infra
 FOREIGN KEY (agg_build_infra_id) REFERENCES eqged.agg_build_infra(id);
 
 ALTER TABLE eqged.agg_build_infra_pop_ratio ADD CONSTRAINT eqged_agg_build_infra_pop_ratio_grid_point_country_fk
-FOREIGN KEY (country_id, grid_point_id) REFERENCES eqged.grid_point_country(country_id, grid_point_id);
+FOREIGN KEY (gadm_country_id, grid_point_id) REFERENCES eqged.grid_point_country(gadm_country_id, grid_point_id);
 
 ALTER TABLE eqged.agg_build_infra_src ADD CONSTRAINT eqged_agg_build_infra_src_mapping_scheme_src_fk
 FOREIGN KEY (mapping_scheme_src_id) REFERENCES eqged.mapping_scheme_src(id) ON UPDATE CASCADE ON DELETE SET NULL;
@@ -1092,10 +1092,10 @@ ALTER TABLE eqged.agg_build_infra_src ADD CONSTRAINT eqged_agg_build_infra_src_s
 FOREIGN KEY (study_region_id) REFERENCES eqged.study_region(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 ALTER TABLE eqged.cresta_country ADD CONSTRAINT eqged_cresta_country_gadm_country_fk
-FOREIGN KEY (country_id) REFERENCES eqged.gadm_country(id);
+FOREIGN KEY (gadm_country_id) REFERENCES eqged.gadm_country(id);
 
-ALTER TABLE eqged.cresta_zone ADD CONSTRAINT eqged_cresta_zone_cresta_country_country_id_fk
-FOREIGN KEY (country_id) REFERENCES eqged.cresta_country(country_id);
+ALTER TABLE eqged.cresta_zone ADD CONSTRAINT eqged_cresta_zone_cresta_country_gadm_country_id_fk
+FOREIGN KEY (gadm_country_id) REFERENCES eqged.cresta_country(gadm_country_id);
 
 ALTER TABLE eqged.grid_point ADD CONSTRAINT eqged_grid_point_cresta_zone_cresta_subzone_fk
 FOREIGN KEY (cresta_subzone) REFERENCES eqged.cresta_zone(id);
@@ -1107,13 +1107,13 @@ ALTER TABLE eqged.grid_point ADD CONSTRAINT eqged_grid_point_organization_fk
 FOREIGN KEY (organization_id) REFERENCES admin.organization(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 ALTER TABLE eqged.grid_point_admin_1 ADD CONSTRAINT eqged_grid_point_admin_1_gadm_admin_1_fk
-FOREIGN KEY (admin_1_id) REFERENCES eqged.gadm_admin_1(id);
+FOREIGN KEY (gadm_admin_1_id) REFERENCES eqged.gadm_admin_1(id);
 
 ALTER TABLE eqged.grid_point_admin_1 ADD CONSTRAINT eqged_grid_point_admin_1_grid_point_fk
 FOREIGN KEY (grid_point_id) REFERENCES eqged.grid_point(id);
 
 ALTER TABLE eqged.grid_point_admin_2 ADD CONSTRAINT eqged_grid_point_admin_2_gadm_admin_2_fk
-FOREIGN KEY (admin_2_id) REFERENCES eqged.gadm_admin_2(id);
+FOREIGN KEY (gadm_admin_2_id) REFERENCES eqged.gadm_admin_2(id);
 
 ALTER TABLE eqged.grid_point_admin_1 ADD CONSTRAINT eqged_grid_point_admin_2_grid_point_fk
 FOREIGN KEY (grid_point_id) REFERENCES eqged.grid_point(id);
@@ -1125,7 +1125,7 @@ ALTER TABLE eqged.grid_point_admin_3 ADD CONSTRAINT eqged_grid_point_admin_3_gri
 FOREIGN KEY (grid_point_id) REFERENCES eqged.grid_point(id);
 
 ALTER TABLE eqged.grid_point_country ADD CONSTRAINT eqged_grid_point_country_gadm_country_fk
-FOREIGN KEY (country_id) REFERENCES eqged.gadm_country(id);
+FOREIGN KEY (gadm_country_id) REFERENCES eqged.gadm_country(id);
 
 ALTER TABLE eqged.grid_point_country ADD CONSTRAINT eqged_grid_point_country_grid_point_fk
 FOREIGN KEY (grid_point_id) REFERENCES eqged.grid_point(id);
@@ -1152,7 +1152,7 @@ ALTER TABLE eqged.population ADD CONSTRAINT eqged_population_population_src_fk
 FOREIGN KEY (population_src_id) REFERENCES eqged.population_src(id);
 
 ALTER TABLE eqged.pop_allocation ADD CONSTRAINT eqged_pop_allocation_gadm_country_fk
-FOREIGN KEY (country_id) REFERENCES eqged.gadm_country(id);
+FOREIGN KEY (gadm_country_id) REFERENCES eqged.gadm_country(id);
 
 ALTER TABLE eqged.study_region ADD CONSTRAINT eqged_study_region_oq_user_fk
 FOREIGN KEY (oq_user_id) REFERENCES admin.oq_user(id) ON UPDATE CASCADE ON DELETE SET NULL;
