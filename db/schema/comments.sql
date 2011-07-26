@@ -59,7 +59,32 @@ COMMENT ON COLUMN eqged.agg_build_infra.num_buildings IS 'number of buildings fo
 COMMENT ON TABLE eqged.agg_build_infra_src IS 'metadata describing how the numbers in agg_build_infra were calculated';
 COMMENT ON COLUMN eqged.agg_build_infra_src.the_geom IS 'geometry of area within the study region to which the selected mapping scheme is applied';
 
-COMMENT ON TABLE eqged.grid_point IS 'GEM proposed 30 sec arc grid';
+COMMENT ON TABLE eqged.grid_point IS 'Table to store the geometry and simple attributes of points representing 30 arc-second cells. Mapping schemes are applied to these cells to produce global or regional sets of data with modeled or measured exposure attributes for use in GEM software.';
+COMMENT ON COLUMN eqged.grid_point.id IS 'Unique identifier';
+COMMENT ON COLUMN eqged.grid_point.the_geom IS 'Point geometry, one point for every 30 arc-second cell of the planet\'s inhabitable land area (excludes Antarctica, water bodies, permanent ice, and oceans). Can easily be converted to a raster. Point-in-polygon operation (via SQL or programmatically) can be used to identify points within a mapping scheme geometry.';
+COMMENT ON COLUMN eqged.grid_point.lat IS 'Latitude of the point in decimal degrees. Although available from the_geom, it is also easier to store than calculate on the fly. Additionally, if the point data are projected this is not readily available. ';
+COMMENT ON COLUMN eqged.grid_point.lon IS 'Longitude of the point in decimal degrees. Although available from the_geom, it is also easier to store than calculate on the fly. Additionally, if the point data are projected this is not readily available. ';
+COMMENT ON COLUMN eqged.grid_point.land_area IS 'Land area in square km of the 30 arc-second cell. Useful for calculating densities (population, housing, etc.). Varies with latitude. For cells that are part land and part water or permanent ice, the area only reflects the land portion of the cell.';
+COMMENT ON COLUMN eqged.grid_point.is_urban IS 'Boolean flag for geometries that are within an urban area as defined by the GRUMPv1 urban-rural layer.';
+COMMENT ON COLUMN eqged.grid_point.urban_measure_quality IS 'Qualitative measure of the reliability of the urban-rural mask on a per-point basis. Not yet available.';
+COMMENT ON COLUMN eqged.grid_point.date_created IS 'Date of last update for the point.';
+COMMENT ON COLUMN eqged.grid_point.cresta_zone IS 'Cresta zone identifier (foreign key)';
+COMMENT ON COLUMN eqged.grid_point.cresta_subzone IS 'Cresta subzone identifier (foreign key)';
+COMMENT ON COLUMN eqged.grid_point.organization_id IS 'organization identifier (foreign key)';
+
+COMMENT ON TABLE eqged.gadm_country IS 'Global Administrative Units layer at the country level. Useful for matching country-level attributes to the grid_point table. Also may be used for cartographic purposes.';
+COMMENT ON COLUMN eqged.gadm_country.id IS 'Unique identifier';
+COMMENT ON COLUMN eqged.gadm_country.name IS 'Country name in English';
+COMMENT ON COLUMN eqged.gadm_country.alias IS 'Alternate country name, often in local language';
+COMMENT ON COLUMN eqged.gadm_country.iso IS '3-letter International Organization for Standardization (ISO) code. Useful for joining with country-level attributes.';
+COMMENT ON COLUMN eqged.gadm_country.the_geom IS 'Polygon representing a country boundary. Note that some "countries" are actually regions or territories, such as Puerto Rico, which has it\'s own polygon and ISO code despite being a U.S. Commonwealth. ';
+COMMENT ON COLUMN eqged.gadm_country.shape_perimeter IS 'Length of the polygon perimeter in km';
+COMMENT ON COLUMN eqged.gadm_country.shape_area IS 'Area of the polygon in square km';
+COMMENT ON COLUMN eqged.gadm_country.date IS 'Date of update for the country';
+
+COMMENT ON TABLE eqged.grid_point_country IS 'Link between gadm_country table and grid_point table, precalculates the spatial relationship (point-in-polygon) to save on computation time.';
+COMMENT ON COLUMN eqged.grid_point_country.country_id IS 'Foreign key linked to gadm_country';
+COMMENT ON COLUMN eqged.grid_point_country.grid_point_id IS 'Foreign key linked to grid_point';
 
 COMMENT ON TABLE eqged.mapping_scheme IS 'mapping scheme table storing all entries of a mapping scheme tree. this table is designed to be flexible in order to store MS tree of arbitrary height, which different type of nodes at each level. see documentation at <URL> for detail explanation of mapping scheme concept';
 COMMENT ON COLUMN eqged.mapping_scheme.parent_ms_id IS 'pointer to parent mapping scheme record';
@@ -86,7 +111,23 @@ COMMENT ON COLUMN eqged.mapping_scheme_type.name IS 'short name description of t
 ...'; 
 COMMENT ON COLUMN eqged.mapping_scheme_type.description IS 'detail description of the mapping type. should provide hint of requirements for using the type of mapping.';
 
+COMMENT ON TABLE eqged.population IS 'Table to store population estimates for grid points';
+COMMENT ON COLUMN eqged.population.grid_point_id IS 'Link to grid point (foreign key)';
+COMMENT ON COLUMN eqged.population.population_src_id IS 'Link to population data source (foreign key)';
+COMMENT ON COLUMN eqged.population.pop_value IS 'population estimate in persons';
+COMMENT ON COLUMN eqged.population.pop_quality IS 'population quality estimate: in the case of GRUMP estimates, this is an area measure, in square kilometers, of the spatial unit from which the population was derived. It can be used to mask out points that are deemed to unreliable for a given analysis.';
+
+COMMENT ON TABLE eqged.population_src IS 'Table to store information on a population data source.';
+COMMENT ON COLUMN eqged.population_src.id IS 'Unique identifier';
+COMMENT ON COLUMN eqged.population_src.source IS 'Project or data provider for a population estimate';
+COMMENT ON COLUMN eqged.population_src.desription IS 'Description of the population estimate.';
+COMMENT ON COLUMN eqged.population_src.notes IS 'Use notes for the population estimate, including information on quality measures, if available.';
+COMMENT ON COLUMN eqged.population_src.date IS 'Date that the population data represents';
+
 COMMENT ON TABLE eqged.pop_allocation IS 'lookup table to allocate portion of total population according to time of day and urban/rural status for each country. This table is based on PAGER';
+COMMENT ON COLUMN eqged.pop_allocation.id IS 'Unique identifier';
+COMMENT ON COLUMN eqged.pop_allocation.gadm_country_id IS 'Link to country for which the data applies (foreign key)';
+COMMENT ON COLUMN eqged.pop_allocation.is_urban IS 'boolean flag for urban-rural designation';
 COMMENT ON COLUMN eqged.pop_allocation.day_pop_ratio IS 'ratio of total population assigned as day time non-residential (working) ';
 COMMENT ON COLUMN eqged.pop_allocation.night_pop_ratio IS 'ratio of total population for night time residential (at home)';
 COMMENT ON COLUMN eqged.pop_allocation.transit_pop_ratio IS 'ratio of total population for transit time (on the road)';
