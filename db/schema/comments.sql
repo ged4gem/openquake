@@ -83,7 +83,7 @@ COMMENT ON COLUMN eqged.gadm_country.shape_area IS 'Area of the polygon in squar
 COMMENT ON COLUMN eqged.gadm_country.date IS 'Date of update for the country';
 
 COMMENT ON TABLE eqged.grid_point_country IS 'Link between gadm_country table and grid_point table, precalculates the spatial relationship (point-in-polygon) to save on computation time.';
-COMMENT ON COLUMN eqged.grid_point_country.country_id IS 'Foreign key linked to gadm_country';
+COMMENT ON COLUMN eqged.grid_point_country.gadm_country_id IS 'Foreign key linked to gadm_country';
 COMMENT ON COLUMN eqged.grid_point_country.grid_point_id IS 'Foreign key linked to grid_point';
 
 COMMENT ON TABLE eqged.mapping_scheme IS 'mapping scheme table storing all entries of a mapping scheme tree. this table is designed to be flexible in order to store MS tree of arbitrary height, which different type of nodes at each level. see documentation at <URL> for detail explanation of mapping scheme concept';
