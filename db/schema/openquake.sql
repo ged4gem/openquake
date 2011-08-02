@@ -388,7 +388,7 @@ CREATE TABLE eqged.population (
     id integer PRIMARY KEY,
     grid_point_id integer NOT NULL,
     population_src_id integer NOT NULL,
-    pop_value double precision,
+    pop_value double precision NOT NULL,
     pop_quality double precision
 ) TABLESPACE eqged_ts;
 
@@ -406,9 +406,9 @@ CREATE TABLE eqged.pop_allocation (
     id integer PRIMARY KEY,
     gadm_country_id integer NOT NULL,
     is_urban boolean NOT NULL,
-    day_pop_ratio eqged.proportion,
-    night_pop_ratio eqged.proportion,
-    transit_pop_ratio eqged.proportion
+    day_pop_ratio eqged.proportion NOT NULL,
+    night_pop_ratio eqged.proportion NOT NULL,
+    transit_pop_ratio eqged.proportion NOT NULL
 ) TABLESPACE eqged_ts;
 
 -- study regions
