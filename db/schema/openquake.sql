@@ -185,7 +185,7 @@ CREATE TABLE eqged.agg_build_infra (
 -- aggregate building infrastructure population values
 CREATE TABLE eqged.agg_build_infra_pop (
     agg_build_infra_pop_ratio_id bigint NOT NULL,
-    population_id integer NOT NULL,
+    population_id bigint NOT NULL,
     day_pop double precision NOT NULL,
     night_pop double precision NOT NULL,
     transit_pop double precision NOT NULL,
@@ -385,7 +385,7 @@ CREATE TABLE eqged.mapping_scheme_type (
 
 -- population
 CREATE TABLE eqged.population (
-    id integer PRIMARY KEY,
+    id bigint PRIMARY KEY,
     grid_point_id integer NOT NULL,
     population_src_id integer NOT NULL,
     pop_value double precision NOT NULL,
