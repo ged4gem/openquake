@@ -121,7 +121,7 @@ COMMENT ON COLUMN eqged.population.pop_quality IS 'population quality estimate: 
 COMMENT ON TABLE eqged.population_src IS 'Table to store information on a population data source.';
 COMMENT ON COLUMN eqged.population_src.id IS 'Unique identifier';
 COMMENT ON COLUMN eqged.population_src.source IS 'Project or data provider for a population estimate';
-COMMENT ON COLUMN eqged.population_src.desription IS 'Description of the population estimate.';
+COMMENT ON COLUMN eqged.population_src.description IS 'Description of the population estimate.';
 COMMENT ON COLUMN eqged.population_src.notes IS 'Use notes for the population estimate, including information on quality measures, if available.';
 COMMENT ON COLUMN eqged.population_src.date IS 'Date that the population data represents';
 

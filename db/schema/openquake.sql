@@ -189,7 +189,7 @@ CREATE TABLE eqged.agg_build_infra_pop (
     day_pop double precision NOT NULL,
     night_pop double precision NOT NULL,
     transit_pop double precision NOT NULL,
-    PRIMARY KEY(agg_build_infra_id, population_id)
+    PRIMARY KEY(agg_build_infra_pop_ratio_id, population_id)
 ) TABLESPACE eqged_ts;
 
 -- aggregate building infrastructure population ratios
@@ -200,7 +200,7 @@ CREATE TABLE eqged.agg_build_infra_pop_ratio (
     grid_point_id integer NOT NULL,
     day_pop_ratio eqged.proportion NOT NULL,
     night_pop_ratio eqged.proportion NOT NULL,
-    transit_pop_ratio eqged.proportion NOT NULL,
+    transit_pop_ratio eqged.proportion NOT NULL
 ) TABLESPACE eqged_ts;
 
 -- aggregate building infrastructure source
@@ -389,7 +389,7 @@ CREATE TABLE eqged.population (
     grid_point_id integer NOT NULL,
     population_src_id integer NOT NULL,
     pop_value double precision,
-    pop_quality double precision,
+    pop_quality double precision
 ) TABLESPACE eqged_ts;
 
 -- population
