@@ -184,25 +184,23 @@ CREATE TABLE eqged.agg_build_infra (
 
 -- aggregate building infrastructure population values
 CREATE TABLE eqged.agg_build_infra_pop (
-    agg_build_infra_id bigint NOT NULL,
-    gadm_country_id integer NOT NULL,
-    grid_point_id integer NOT NULL,
-    population_src_id integer NOT NULL,
+    agg_build_infra_pop_ratio_id bigint NOT NULL,
+    population_id integer NOT NULL,
     day_pop double precision NOT NULL,
     night_pop double precision NOT NULL,
     transit_pop double precision NOT NULL,
-    PRIMARY KEY(agg_build_infra_id, gadm_country_id, grid_point_id, population_src_id)
+    PRIMARY KEY(agg_build_infra_id, population_id)
 ) TABLESPACE eqged_ts;
 
 -- aggregate building infrastructure population ratios
 CREATE TABLE eqged.agg_build_infra_pop_ratio (
+    id bigint PRIMARY KEY,
     agg_build_infra_id bigint NOT NULL,
     gadm_country_id integer NOT NULL,
     grid_point_id integer NOT NULL,
     day_pop_ratio eqged.proportion NOT NULL,
     night_pop_ratio eqged.proportion NOT NULL,
     transit_pop_ratio eqged.proportion NOT NULL,
-    PRIMARY KEY(agg_build_infra_id, gadm_country_id, grid_point_id)
 ) TABLESPACE eqged_ts;
 
 -- aggregate building infrastructure source
@@ -386,11 +384,11 @@ CREATE TABLE eqged.mapping_scheme_type (
 
 -- population
 CREATE TABLE eqged.population (
+    id integer PRIMARY KEY,
     grid_point_id integer NOT NULL,
     population_src_id integer NOT NULL,
     pop_value double precision,
     pop_quality double precision,
-    PRIMARY KEY(grid_point_id, population_src_id)
 ) TABLESPACE eqged_ts;
 
 -- population
@@ -1083,10 +1081,10 @@ ALTER TABLE eqged.agg_build_infra ADD CONSTRAINT eqged_agg_build_infra_agg_build
 FOREIGN KEY (agg_build_infra_src_id) REFERENCES eqged.agg_build_infra_src(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 ALTER TABLE eqged.agg_build_infra_pop ADD CONSTRAINT eqged_agg_build_infra_pop_agg_build_infra_pop_ratio_fk
-FOREIGN KEY (agg_build_infra_id, gadm_country_id, grid_point_id) REFERENCES eqged.agg_build_infra_pop_ratio(agg_build_infra_id, gadm_country_id, grid_point_id);
+FOREIGN KEY (agg_build_infra_pop_ratio_id) REFERENCES eqged.agg_build_infra_pop_ratio(id);
 
 ALTER TABLE eqged.agg_build_infra_pop ADD CONSTRAINT eqged_agg_build_infra_pop_population_fk
-FOREIGN KEY (grid_point_id, population_src_id) REFERENCES eqged.population(grid_point_id, population_src_id);
+FOREIGN KEY (population_id) REFERENCES eqged.population(id);
 
 ALTER TABLE eqged.agg_build_infra_pop_ratio ADD CONSTRAINT eqged_agg_build_infra_pop_ratio_agg_build_infra_fk
 FOREIGN KEY (agg_build_infra_id) REFERENCES eqged.agg_build_infra(id);

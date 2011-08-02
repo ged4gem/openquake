@@ -112,6 +112,7 @@ COMMENT ON COLUMN eqged.mapping_scheme_type.name IS 'short name description of t
 COMMENT ON COLUMN eqged.mapping_scheme_type.description IS 'detail description of the mapping type. should provide hint of requirements for using the type of mapping.';
 
 COMMENT ON TABLE eqged.population IS 'Table to store population estimates for grid points';
+COMMENT ON COLUMN eqged.population.id IS 'Unique identifier';
 COMMENT ON COLUMN eqged.population.grid_point_id IS 'Link to grid point (foreign key)';
 COMMENT ON COLUMN eqged.population.population_src_id IS 'Link to population data source (foreign key)';
 COMMENT ON COLUMN eqged.population.pop_value IS 'population estimate in persons';
