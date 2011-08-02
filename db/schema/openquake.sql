@@ -301,7 +301,7 @@ CREATE TABLE eqged.grid_point (
     the_geom public.geometry NOT NULL,
     lat double precision NOT NULL,
     lon double precision NOT NULL,
-    land_area integer NOT NULL,
+    land_area double precision NOT NULL,
     is_urban boolean NOT NULL,
     urban_measure_quality double precision,
     date_created timestamp without time zone DEFAULT timezone('UTC'::text, now()) NOT NULL,
