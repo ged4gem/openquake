@@ -49,15 +49,21 @@ COMMENT ON COLUMN eqcat.surface.semi_major IS 'Semi-major axis: The longest radi
 
 COMMENT ON VIEW eqcat.catalog_allfields IS 'A global catalog view, needed for geonode integration';
 
-COMMENT ON TABLE eqged.agg_build_infra IS 'result of mapping scheme assignment for grid_point. each lat_lon_point can have multiple records here';
+COMMENT ON TABLE eqged.agg_build_infra IS 'result of mapping scheme assignment for grid_point. each grid_point can have multiple records here';
 COMMENT ON COLUMN eqged.agg_build_infra.struct_ms_class IS 'structure class based on mapping scheme used.';
 COMMENT ON COLUMN eqged.agg_build_infra.height_ms_class IS 'height class based on mapping scheme used.';
 COMMENT ON COLUMN eqged.agg_build_infra.occ_ms_class IS 'occupancy class based on mapping scheme used.';
 COMMENT ON COLUMN eqged.agg_build_infra.age_ms_class IS 'age class based on mapping scheme used.';
 COMMENT ON COLUMN eqged.agg_build_infra.num_buildings IS 'number of buildings for matching classification (struct, height, occ, age)';
 
+COMMENT ON COLUMN eqged.agg_build_infra_pop.day_pop IS 'day time population at the grid';
+COMMENT ON COLUMN eqged.agg_build_infra_pop.night_pop IS 'night time population at the grid';
+COMMENT ON COLUMN eqged.agg_build_infra_pop.transit_pop IS 'transit time population at the grid';
+
 COMMENT ON TABLE eqged.agg_build_infra_src IS 'metadata describing how the numbers in agg_build_infra were calculated';
 COMMENT ON COLUMN eqged.agg_build_infra_src.the_geom IS 'geometry of area within the study region to which the selected mapping scheme is applied';
+COMMENT ON COLUMN eqged.agg_build_infra_src.shape_perimeter IS 'perimeter of geometry, to keep consistency with ESRI format';
+COMMENT ON COLUMN eqged.agg_build_infra_src.shape_area IS 'area of geometry, to keep consistency with ESRI format';
 
 COMMENT ON TABLE eqged.grid_point IS 'Table to store the geometry and simple attributes of points representing 30 arc-second cells. Mapping schemes are applied to these cells to produce global or regional sets of data with modeled or measured exposure attributes for use in GEM software.';
 COMMENT ON COLUMN eqged.grid_point.id IS 'Unique identifier';
@@ -86,13 +92,16 @@ COMMENT ON TABLE eqged.grid_point_country IS 'Link between gadm_country table an
 COMMENT ON COLUMN eqged.grid_point_country.gadm_country_id IS 'Foreign key linked to gadm_country';
 COMMENT ON COLUMN eqged.grid_point_country.grid_point_id IS 'Foreign key linked to grid_point';
 
-COMMENT ON TABLE eqged.mapping_scheme IS 'mapping scheme table storing all entries of a mapping scheme tree. this table is designed to be flexible in order to store MS tree of arbitrary height, which different type of nodes at each level. see documentation at <URL> for detail explanation of mapping scheme concept';
-COMMENT ON COLUMN eqged.mapping_scheme.parent_ms_id IS 'pointer to parent mapping scheme record';
-COMMENT ON COLUMN eqged.mapping_scheme.ms_class_id IS 'classification';
-COMMENT ON COLUMN eqged.mapping_scheme.ms_value IS 'ratio of buildings for class';
+COMMENT ON TABLE eqged.mapping_scheme IS 'mapping scheme table storing all entries of a mapping scheme tree. this table is designed to be flexible in order to store MS tree of arbitrary height, with different type of nodes at each level. see documentation at <URL> for detail explanation of mapping scheme concept';
+COMMENT ON COLUMN eqged.mapping_scheme.parent_ms_id IS 'pointer to parent mapping scheme record in the same table. this self pointing technique is used to maintain the tree structure';
+COMMENT ON COLUMN eqged.mapping_scheme.ms_class_id IS 'building classification';
+COMMENT ON COLUMN eqged.mapping_scheme.ms_value IS 'ratio of buildings in the classification';
 
-COMMENT ON TABLE eqged.mapping_scheme_class IS 'building classification, corresponding to a value of a categorical building facet. Example, WOOD ';
-COMMENT ON COLUMN eqged.mapping_scheme_class.taxonomy IS 'taxonomy for the class. currently only PAGER is available';
+COMMENT ON TABLE eqged.mapping_scheme_class IS 'building classification, corresponding to a value of a categorical building facet. Example, WOOD. or Low. Classes are placed into the nodes of the mapping scheme tree and associated with the ratio';
+COMMENT ON COLUMN eqged.mapping_scheme_class.id IS 'serial id to satisfy single field primary key requirement';
+COMMENT ON COLUMN eqged.mapping_scheme_class.ms_type_id IS 'foregin key to mapping scheme type'
+COMMENT ON COLUMN eqged.mapping_scheme_class.taxonomy IS 'indicates taxonomy of the mapping scheme class. Per current design, classes of distinct taxonomy should not be part of the same tree'
+COMMENT ON COLUMN eqged.mapping_scheme_class.ms_class_id IS 'mapping scheme id. This ID is recycled for each ms_type_id. the combination of ms_type_id+ms_class_id uniquely identifies a mapping scheme class'
 
 COMMENT ON TABLE eqged.mapping_scheme_src IS 'metadata mapping schemes';
 COMMENT ON COLUMN eqged.mapping_scheme_src.source IS 'source data from which the mapping scheme is created. Could be but not limited to one of the following
@@ -103,7 +112,7 @@ COMMENT ON COLUMN eqged.mapping_scheme_src.use_notes IS 'description of how this
 COMMENT ON COLUMN eqged.mapping_scheme_src.quality IS 'quality measure, should be indication of quality of result. still not well defined.' ;
 COMMENT ON COLUMN eqged.mapping_scheme_src.taxonomy IS 'taxonomy for the mapping scheme. currently only PAGER is available. We do not anticipate multiple taxonomies used in a single mapping scheme tree';
 
-COMMENT ON TABLE eqged.mapping_scheme_type IS 'lookup table for valid mapping combinations';;
+COMMENT ON TABLE eqged.mapping_scheme_type IS 'lookup table for the types of mapping combinations';
 COMMENT ON COLUMN eqged.mapping_scheme_type.name IS 'short name description of type of mapping. e.g.
 - struct_lv0
 - struct_ht
@@ -128,7 +137,7 @@ COMMENT ON COLUMN eqged.population_src.date IS 'Date that the population data re
 COMMENT ON TABLE eqged.pop_allocation IS 'lookup table to allocate portion of total population according to time of day and urban/rural status for each country. This table is based on PAGER';
 COMMENT ON COLUMN eqged.pop_allocation.id IS 'Unique identifier';
 COMMENT ON COLUMN eqged.pop_allocation.gadm_country_id IS 'Link to country for which the data applies (foreign key)';
-COMMENT ON COLUMN eqged.pop_allocation.is_urban IS 'boolean flag for urban-rural designation';
+COMMENT ON COLUMN eqged.pop_allocation.is_urban IS 'flag indicating ratio should be used in urban or rural area';
 COMMENT ON COLUMN eqged.pop_allocation.day_pop_ratio IS 'ratio of total population assigned as day time non-residential (working) ';
 COMMENT ON COLUMN eqged.pop_allocation.night_pop_ratio IS 'ratio of total population for night time residential (at home)';
 COMMENT ON COLUMN eqged.pop_allocation.transit_pop_ratio IS 'ratio of total population for transit time (on the road)';
