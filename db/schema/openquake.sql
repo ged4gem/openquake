@@ -369,7 +369,7 @@ CREATE TABLE eqged.mapping_scheme_src (
     source VARCHAR,
     date_created timestamp without time zone DEFAULT timezone('UTC'::text, now()) NOT NULL,
     data_source VARCHAR,
-    data_source_date timestamp without time zone,
+    data_source_date date,
     use_notes VARCHAR,
     quality VARCHAR,
     oq_user_id integer,
