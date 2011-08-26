@@ -143,6 +143,11 @@ WHERE
     eqcat.catalog.magnitude_id = eqcat.magnitude.id
     AND eqcat.catalog.surface_id = eqcat.surface.id;
 
+-- nonnegative (x >= 0, x numeric)
+CREATE DOMAIN eqged.nonnegative AS numeric
+    CONSTRAINT nonnegative_check
+      CHECK (VALUE >= (0)::numeric);
+
 -- proportion (0 <= x <= 1, x double)
 CREATE DOMAIN eqged.proportion AS double precision
     CONSTRAINT proportion_check 
@@ -157,8 +162,8 @@ CREATE TABLE eqged.admin_3 (
     id integer PRIMARY KEY,
     name VARCHAR,
     varname VARCHAR,
-    shape_perimeter numeric,
-    shape_area numeric,
+    shape_perimeter eqged.nonnegative,
+    shape_area eqged.nonnegative,
     date date
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'admin_3', 'the_geom', 4326, 'POLYGON', 2);
@@ -201,8 +206,8 @@ CREATE TABLE eqged.agg_build_infra_pop_ratio (
 -- aggregate building infrastructure source
 CREATE TABLE eqged.agg_build_infra_src (
     id integer PRIMARY KEY,
-    shape_perimeter numeric,
-    shape_area numeric,
+    shape_perimeter eqged.nonnegative,
+    shape_area eqged.nonnegative,
     date date,
     mapping_scheme_src_id integer,
     study_region_id integer
@@ -236,8 +241,8 @@ CREATE TABLE eqged.gadm_admin_1 (
     iso character(3),
     type VARCHAR,
     engtype VARCHAR,
-    shape_perimeter numeric,
-    shape_area numeric,
+    shape_perimeter eqged.nonnegative,
+    shape_area eqged.nonnegative,
     date date
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'gadm_admin_1', 'the_geom', 4326, 'POLYGON', 2);
@@ -250,8 +255,8 @@ CREATE TABLE eqged.gadm_admin_2 (
     varname VARCHAR,
     type VARCHAR,
     engtype VARCHAR,
-    shape_perimeter numeric,
-    shape_area numeric,
+    shape_perimeter eqged.nonnegative,
+    shape_area eqged.nonnegative,
     date date
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'gadm_admin_2', 'the_geom', 4326, 'POLYGON', 2);
@@ -262,8 +267,8 @@ CREATE TABLE eqged.gadm_country (
     name VARCHAR NOT NULL,
     alias VARCHAR,
     iso character(3),
-    shape_perimeter numeric,
-    shape_area numeric,
+    shape_perimeter eqged.nonnegative,
+    shape_area eqged.nonnegative,
     date date
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'gadm_country', 'the_geom', 4326, 'POLYGON', 2);
