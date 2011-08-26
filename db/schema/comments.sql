@@ -67,7 +67,7 @@ COMMENT ON COLUMN eqged.agg_build_infra_src.shape_area IS 'area of geometry, to 
 
 COMMENT ON TABLE eqged.grid_point IS 'Table to store the geometry and simple attributes of points representing 30 arc-second cells. Mapping schemes are applied to these cells to produce global or regional sets of data with modeled or measured exposure attributes for use in GEM software.';
 COMMENT ON COLUMN eqged.grid_point.id IS 'Unique identifier';
-COMMENT ON COLUMN eqged.grid_point.the_geom IS 'Point geometry, one point for every 30 arc-second cell of the planet\'s inhabitable land area (excludes Antarctica, water bodies, permanent ice, and oceans). Can easily be converted to a raster. Point-in-polygon operation (via SQL or programmatically) can be used to identify points within a mapping scheme geometry.';
+COMMENT ON COLUMN eqged.grid_point.the_geom IS 'Point geometry, one point for every 30 arc-second cell of the planet''s inhabitable land area (excludes Antarctica, water bodies, permanent ice, and oceans). Can easily be converted to a raster. Point-in-polygon operation (via SQL or programmatically) can be used to identify points within a mapping scheme geometry.';
 COMMENT ON COLUMN eqged.grid_point.lat IS 'Latitude of the point in decimal degrees. Although available from the_geom, it is also easier to store than calculate on the fly. Additionally, if the point data are projected this is not readily available. ';
 COMMENT ON COLUMN eqged.grid_point.lon IS 'Longitude of the point in decimal degrees. Although available from the_geom, it is also easier to store than calculate on the fly. Additionally, if the point data are projected this is not readily available. ';
 COMMENT ON COLUMN eqged.grid_point.land_area IS 'Land area in square km of the 30 arc-second cell. Useful for calculating densities (population, housing, etc.). Varies with latitude. For cells that are part land and part water or permanent ice, the area only reflects the land portion of the cell.';
@@ -83,7 +83,7 @@ COMMENT ON COLUMN eqged.gadm_country.id IS 'Unique identifier';
 COMMENT ON COLUMN eqged.gadm_country.name IS 'Country name in English';
 COMMENT ON COLUMN eqged.gadm_country.alias IS 'Alternate country name, often in local language';
 COMMENT ON COLUMN eqged.gadm_country.iso IS '3-letter International Organization for Standardization (ISO) code. Useful for joining with country-level attributes.';
-COMMENT ON COLUMN eqged.gadm_country.the_geom IS 'Polygon representing a country boundary. Note that some "countries" are actually regions or territories, such as Puerto Rico, which has it\'s own polygon and ISO code despite being a U.S. Commonwealth. ';
+COMMENT ON COLUMN eqged.gadm_country.the_geom IS 'Polygon representing a country boundary. Note that some "countries" are actually regions or territories, such as Puerto Rico, which has it''s own polygon and ISO code despite being a U.S. Commonwealth. ';
 COMMENT ON COLUMN eqged.gadm_country.shape_perimeter IS 'Length of the polygon perimeter in km';
 COMMENT ON COLUMN eqged.gadm_country.shape_area IS 'Area of the polygon in square km';
 COMMENT ON COLUMN eqged.gadm_country.date IS 'Date of update for the country';
@@ -99,25 +99,25 @@ COMMENT ON COLUMN eqged.mapping_scheme.ms_value IS 'ratio of buildings in the cl
 
 COMMENT ON TABLE eqged.mapping_scheme_class IS 'building classification, corresponding to a value of a categorical building facet. Example, WOOD. or Low. Classes are placed into the nodes of the mapping scheme tree and associated with the ratio';
 COMMENT ON COLUMN eqged.mapping_scheme_class.id IS 'serial id to satisfy single field primary key requirement';
-COMMENT ON COLUMN eqged.mapping_scheme_class.ms_type_id IS 'foregin key to mapping scheme type'
-COMMENT ON COLUMN eqged.mapping_scheme_class.taxonomy IS 'indicates taxonomy of the mapping scheme class. Per current design, classes of distinct taxonomy should not be part of the same tree'
-COMMENT ON COLUMN eqged.mapping_scheme_class.ms_class_id IS 'mapping scheme id. This ID is recycled for each ms_type_id. the combination of ms_type_id+ms_class_id uniquely identifies a mapping scheme class'
+COMMENT ON COLUMN eqged.mapping_scheme_class.ms_type_id IS 'foregin key to mapping scheme type';
+COMMENT ON COLUMN eqged.mapping_scheme_class.taxonomy IS 'indicates taxonomy of the mapping scheme class. Per current design, classes of distinct taxonomy should not be part of the same tree';
+COMMENT ON COLUMN eqged.mapping_scheme_class.ms_class_id IS 'mapping scheme id. This ID is recycled for each ms_type_id. the combination of ms_type_id+ms_class_id uniquely identifies a mapping scheme class';
 
 COMMENT ON TABLE eqged.mapping_scheme_src IS 'metadata mapping schemes';
-COMMENT ON COLUMN eqged.mapping_scheme_src.source IS 'source data from which the mapping scheme is created. Could be but not limited to one of the following
-- Expert knowledge
-- UNHABITAT housing data
-- PAGER' ;
+COMMENT ON COLUMN eqged.mapping_scheme_src.source IS 'source data from which the mapping scheme is created. Could be but not limited to one of the following:
+    - Expert knowledge
+    - UNHABITAT housing data
+    - PAGER';
 COMMENT ON COLUMN eqged.mapping_scheme_src.use_notes IS 'description of how this mapping scheme should be used. e.g. which country or which region it should be used, additional restrictions or shortcomings, etc... ';
 COMMENT ON COLUMN eqged.mapping_scheme_src.quality IS 'quality measure, should be indication of quality of result. still not well defined.' ;
 COMMENT ON COLUMN eqged.mapping_scheme_src.taxonomy IS 'taxonomy for the mapping scheme. currently only PAGER is available. We do not anticipate multiple taxonomies used in a single mapping scheme tree';
 
 COMMENT ON TABLE eqged.mapping_scheme_type IS 'lookup table for the types of mapping combinations';
-COMMENT ON COLUMN eqged.mapping_scheme_type.name IS 'short name description of type of mapping. e.g.
-- struct_lv0
-- struct_ht
-- occupancy
-...'; 
+COMMENT ON COLUMN eqged.mapping_scheme_type.name IS 'short name description of type of mapping, such as:
+    - struct_lv0
+    - struct_ht
+    - occupancy
+    - ...'; 
 COMMENT ON COLUMN eqged.mapping_scheme_type.description IS 'detail description of the mapping type. should provide hint of requirements for using the type of mapping.';
 
 COMMENT ON TABLE eqged.population IS 'Table to store population estimates for grid points';
