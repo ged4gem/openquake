@@ -157,17 +157,12 @@ CREATE TABLE eqged.admin_3 (
     id integer PRIMARY KEY,
     name VARCHAR,
     varname VARCHAR,
-    the_geom public.geometry NOT NULL,
     shape_perimeter numeric,
     shape_area numeric,
-    date date,
-    CONSTRAINT enforce_dims_the_geom
-        CHECK ((public.st_ndims(the_geom) = 2)),
-    CONSTRAINT enforce_geotype_the_geom
-        CHECK (((public.geometrytype(the_geom) = 'POINT'::text) AND (the_geom IS NOT NULL))),
-    CONSTRAINT enforce_srid_the_geom
-        CHECK ((public.st_srid(the_geom) = 4326))
+    date date
 ) TABLESPACE eqged_ts;
+SELECT AddGeometryColumn('eqged', 'admin_3', 'the_geom', 4326, 'POLYGON', 2);
+ALTER TABLE eqged.admin_3 ALTER COLUMN the_geom SET NOT NULL;
 
 -- aggregate building infrastructure
 CREATE TABLE eqged.agg_build_infra (
@@ -206,19 +201,14 @@ CREATE TABLE eqged.agg_build_infra_pop_ratio (
 -- aggregate building infrastructure source
 CREATE TABLE eqged.agg_build_infra_src (
     id integer PRIMARY KEY,
-    the_geom public.geometry NOT NULL,
     shape_perimeter numeric,
     shape_area numeric,
     date date,
     mapping_scheme_src_id integer,
-    study_region_id integer,
-    CONSTRAINT enforce_dims_the_geom
-        CHECK ((public.st_ndims(the_geom) = 2)),
-    CONSTRAINT enforce_geotype_the_geom
-        CHECK (((public.geometrytype(the_geom) = 'MULTIPOLYGON'::text) OR (the_geom IS NULL))),
-    CONSTRAINT enforce_srid_the_geom
-        CHECK ((public.st_srid(the_geom) = 4326))
+    study_region_id integer
 ) TABLESPACE eqged_ts;
+SELECT AddGeometryColumn('eqged', 'agg_build_infra_src', 'the_geom', 4326, 'MULTIPOLYGON', 2);
+ALTER TABLE eqged.agg_build_infra_src ALTER COLUMN the_geom SET NOT NULL;
 
 -- CRESTA countries
 CREATE TABLE eqged.cresta_country (
@@ -246,17 +236,12 @@ CREATE TABLE eqged.gadm_admin_1 (
     iso character(3),
     type VARCHAR,
     engtype VARCHAR,
-    the_geom public.geometry NOT NULL,
     shape_perimeter numeric,
     shape_area numeric,
-    date date,
-    CONSTRAINT enforce_dims_the_geom
-        CHECK ((public.st_ndims(the_geom) = 2)),
-    CONSTRAINT enforce_geotype_the_geom
-        CHECK (((public.geometrytype(the_geom) = 'POINT'::text) AND (the_geom IS NOT NULL))),
-    CONSTRAINT enforce_srid_the_geom
-        CHECK ((public.st_srid(the_geom) = 4326))
+    date date
 ) TABLESPACE eqged_ts;
+SELECT AddGeometryColumn('eqged', 'gadm_admin_1', 'the_geom', 4326, 'POLYGON', 2);
+ALTER TABLE eqged.gadm_admin_1 ALTER COLUMN the_geom SET NOT NULL;
 
 -- GADM second level boundaries
 CREATE TABLE eqged.gadm_admin_2 (
@@ -265,17 +250,11 @@ CREATE TABLE eqged.gadm_admin_2 (
     varname VARCHAR,
     type VARCHAR,
     engtype VARCHAR,
-    the_geom public.geometry NOT NULL,
     shape_perimeter numeric,
     shape_area numeric,
-    date date,
-    CONSTRAINT enforce_dims_the_geom
-        CHECK ((public.st_ndims(the_geom) = 2)),
-    CONSTRAINT enforce_geotype_the_geom
-        CHECK (((public.geometrytype(the_geom) = 'POINT'::text) AND (the_geom IS NOT NULL))),
-    CONSTRAINT enforce_srid_the_geom
-        CHECK ((public.st_srid(the_geom) = 4326))
+    date date
 ) TABLESPACE eqged_ts;
+SELECT AddGeometryColumn('eqged', 'gadm_admin_2', 'the_geom', 4326, 'POLYGON', 2);
 
 -- GADM country boundaries
 CREATE TABLE eqged.gadm_country (
@@ -283,22 +262,16 @@ CREATE TABLE eqged.gadm_country (
     name VARCHAR NOT NULL,
     alias VARCHAR,
     iso character(3),
-    the_geom public.geometry NOT NULL,
     shape_perimeter numeric,
     shape_area numeric,
-    date date,
-    CONSTRAINT enforce_dims_the_geom
-        CHECK (st_ndims(the_geom) = 2),
-    CONSTRAINT enforce_geotype_the_geom
-        CHECK (geometrytype(the_geom) = 'MULTIPOLYGON'::text OR the_geom IS NULL),
-    CONSTRAINT enforce_srid_the_geom
-        CHECK (st_srid(the_geom) = 4326)
+    date date
 ) TABLESPACE eqged_ts;
+SELECT AddGeometryColumn('eqged', 'gadm_country', 'the_geom', 4326, 'POLYGON', 2);
+ALTER TABLE eqged.gadm_country ALTER COLUMN the_geom SET NOT NULL;
 
 -- Global grid
 CREATE TABLE eqged.grid_point (
     id integer PRIMARY KEY,
-    the_geom public.geometry NOT NULL,
     lat double precision NOT NULL,
     lon double precision NOT NULL,
     land_area double precision NOT NULL,
@@ -308,17 +281,13 @@ CREATE TABLE eqged.grid_point (
     cresta_zone integer,
     cresta_subzone integer,
     organization_id integer,
-    CONSTRAINT enforce_dims_the_geom
-        CHECK ((public.st_ndims(the_geom) = 2)),
-    CONSTRAINT enforce_geotype_the_geom
-        CHECK (((public.geometrytype(the_geom) = 'POINT'::text) AND (the_geom IS NOT NULL))),
-    CONSTRAINT enforce_srid_the_geom
-        CHECK ((public.st_srid(the_geom) = 4326)),
     CONSTRAINT grid_point_lat_check
         CHECK (((lat >= ((-90.0))::double precision) AND (lat <= (90.0)::double precision))),
     CONSTRAINT grid_point_lon_check
         CHECK (((lon >= ((-180.0))::double precision) AND (lon <= (180.0)::double precision)))
 ) TABLESPACE eqged_ts;
+SELECT AddGeometryColumn('eqged', 'grid_point', 'the_geom', 4326, 'POINT', 2);
+ALTER TABLE eqged.grid_point ALTER COLUMN the_geom SET NOT NULL;
 
 CREATE TABLE eqged.grid_point_admin_1 (
     grid_point_id integer NOT NULL,
