@@ -260,6 +260,7 @@ CREATE TABLE eqged.gadm_admin_2 (
     date date
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'gadm_admin_2', 'the_geom', 4326, 'POLYGON', 2);
+ALTER TABLE eqged.gadm_admin_2 ALTER COLUMN the_geom SET NOT NULL;
 
 -- GADM country boundaries
 CREATE TABLE eqged.gadm_country (
