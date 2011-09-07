@@ -166,7 +166,7 @@ CREATE TABLE eqged.admin_3 (
     shape_area eqged.nonnegative,
     date date
 ) TABLESPACE eqged_ts;
-SELECT AddGeometryColumn('eqged', 'admin_3', 'the_geom', 4326, 'POLYGON', 2);
+SELECT AddGeometryColumn('eqged', 'admin_3', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.admin_3 ALTER COLUMN the_geom SET NOT NULL;
 
 -- aggregate building infrastructure
@@ -245,7 +245,7 @@ CREATE TABLE eqged.gadm_admin_1 (
     shape_area eqged.nonnegative,
     date date
 ) TABLESPACE eqged_ts;
-SELECT AddGeometryColumn('eqged', 'gadm_admin_1', 'the_geom', 4326, 'POLYGON', 2);
+SELECT AddGeometryColumn('eqged', 'gadm_admin_1', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.gadm_admin_1 ALTER COLUMN the_geom SET NOT NULL;
 
 -- GADM second level boundaries
@@ -259,7 +259,7 @@ CREATE TABLE eqged.gadm_admin_2 (
     shape_area eqged.nonnegative,
     date date
 ) TABLESPACE eqged_ts;
-SELECT AddGeometryColumn('eqged', 'gadm_admin_2', 'the_geom', 4326, 'POLYGON', 2);
+SELECT AddGeometryColumn('eqged', 'gadm_admin_2', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.gadm_admin_2 ALTER COLUMN the_geom SET NOT NULL;
 
 -- GADM country boundaries
@@ -272,7 +272,7 @@ CREATE TABLE eqged.gadm_country (
     shape_area eqged.nonnegative,
     date date
 ) TABLESPACE eqged_ts;
-SELECT AddGeometryColumn('eqged', 'gadm_country', 'the_geom', 4326, 'POLYGON', 2);
+SELECT AddGeometryColumn('eqged', 'gadm_country', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.gadm_country ALTER COLUMN the_geom SET NOT NULL;
 
 -- Global grid
