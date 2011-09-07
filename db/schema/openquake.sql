@@ -164,7 +164,8 @@ CREATE TABLE eqged.admin_3 (
     varname VARCHAR,
     shape_perimeter eqged.nonnegative,
     shape_area eqged.nonnegative,
-    date date
+    date date,
+    gadm_admin_2_id integer
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'admin_3', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.admin_3 ALTER COLUMN the_geom SET NOT NULL;
@@ -243,7 +244,8 @@ CREATE TABLE eqged.gadm_admin_1 (
     engtype VARCHAR,
     shape_perimeter eqged.nonnegative,
     shape_area eqged.nonnegative,
-    date date
+    date date,
+    gadm_country_id integer
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'gadm_admin_1', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.gadm_admin_1 ALTER COLUMN the_geom SET NOT NULL;
@@ -257,7 +259,8 @@ CREATE TABLE eqged.gadm_admin_2 (
     engtype VARCHAR,
     shape_perimeter eqged.nonnegative,
     shape_area eqged.nonnegative,
-    date date
+    date date,
+    gadm_admin_1_id integer
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'gadm_admin_2', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.gadm_admin_2 ALTER COLUMN the_geom SET NOT NULL;
@@ -1050,6 +1053,9 @@ FOREIGN KEY (magnitude_id) REFERENCES eqcat.magnitude(id) ON DELETE RESTRICT;
 ALTER TABLE eqcat.catalog ADD CONSTRAINT eqcat_catalog_surface_fk
 FOREIGN KEY (surface_id) REFERENCES eqcat.surface(id) ON DELETE RESTRICT;
 
+ALTER TABLE eqged.admin_3 ADD CONSTRAINT eqged_admin_3_gadm_admin_2_fk
+FOREIGN KEY (gadm_admin_2_id) REFERENCES eqged.gadm_admin_2(id);
+
 ALTER TABLE eqged.agg_build_infra ADD CONSTRAINT eqged_agg_build_infra_grid_point_fk
 FOREIGN KEY (grid_point_id) REFERENCES eqged.grid_point(id) ON UPDATE CASCADE ON DELETE CASCADE;
 
@@ -1079,6 +1085,12 @@ FOREIGN KEY (gadm_country_id) REFERENCES eqged.gadm_country(id);
 
 ALTER TABLE eqged.cresta_zone ADD CONSTRAINT eqged_cresta_zone_cresta_country_gadm_country_id_fk
 FOREIGN KEY (gadm_country_id) REFERENCES eqged.cresta_country(gadm_country_id);
+
+ALTER TABLE eqged.gadm_admin_1 ADD CONSTRAINT eqged_gadm_admin_1_gadm_country_fk
+FOREIGN KEY (gadm_country_id) REFERENCES eqged.gadm_country(id);
+
+ALTER TABLE eqged.gadm_admin_2 ADD CONSTRAINT eqged_gadm_admin_2_gadm_admin_1_fk
+FOREIGN KEY (gadm_admin_1_id) REFERENCES eqged.gadm_admin_1(id);
 
 ALTER TABLE eqged.grid_point ADD CONSTRAINT eqged_grid_point_cresta_zone_cresta_subzone_fk
 FOREIGN KEY (cresta_subzone) REFERENCES eqged.cresta_zone(id);
