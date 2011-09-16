@@ -363,7 +363,7 @@ CREATE TABLE eqged.mapping_scheme_type (
 
 -- population
 CREATE TABLE eqged.population (
-    id bigint PRIMARY KEY,
+    id bigserial PRIMARY KEY,
     grid_point_id integer NOT NULL,
     population_src_id integer NOT NULL,
     pop_value double precision NOT NULL,
@@ -372,7 +372,7 @@ CREATE TABLE eqged.population (
 
 -- population
 CREATE TABLE eqged.population_src (
-    id integer PRIMARY KEY,
+    id serial PRIMARY KEY,
     source VARCHAR NOT NULL,
     description VARCHAR,
     notes VARCHAR,
