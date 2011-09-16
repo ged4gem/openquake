@@ -1,0 +1,76 @@
+#!/bin/sh
+
+help() {
+cat <<HSD
+`basename $0` loads a population dataset into the OpenQuake database from
+a source and a dataset, both in CSV format (optionally bzip2 archived).
+
+The command line arguments are as follows:
+
+    --db-name=name      The name of the database to set up.
+    --db-user=user      Run all commands as this database user [postgres].
+    --source=path       Path to the population dataset source.
+    --dataset=path      Path to the population dataset.
+HSD
+exit 0
+}
+
+if [ $# -eq 0 ]; then
+    help
+fi
+
+db_admin_user="postgres"
+
+for i in $*
+do
+    case $i in
+    --dataset=*)
+        dataset=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+        test \( -f "$dataset" -a -r "$archive" \)
+        if [ $? -ne 0 ]; then
+            echo "!! Dataset $dataset does not exist or is not readable."
+            exit 1
+        fi
+        ;;
+    --source=*)
+        source=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+        test \( -f "$source" -a -r "$source" \)
+        if [ $? -ne 0 ]; then
+            echo "!! Dataset source $source does not exist or is not readable."
+            exit 1
+        fi
+        ;;
+    --db-name=*)
+        db_name=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+        ;;
+    --db-user=*)
+        db_admin_user=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+        ;;
+    -h|--help)
+        help
+        ;;
+    *)
+        echo "Unknown option: " $i
+        exit 2
+        ;;
+    esac
+done
+
+if [ -z "$db_name" ]; then
+    echo "!! Please specify a database name."
+    exit 4
+fi
+
+psql_args="-d $db_name -U $db_admin_user"
+
+echo "Loading population source..."
+file $source | grep -q "bzip2" && CAT="bzcat" || CAT="cat"
+$CAT $source | psql $psql_args -c "COPY eqged.population_src_id (source, description, notes, date) FROM STDIN CSV HEADER"
+
+echo "Loading population dataset..."
+psql $psql_args -c "ALTER TABLE eqged.population ALTER COLUMN population_src_id SET DEFAULT currval('eqged.population_src_id_seq')"
+file $dataset | grep -q "bzip2" && CAT="bzcat" || CAT="cat"
+$CAT $dataset | psql $psql_args -c "COPY eqged.population (grid_point,pop_value,pop_quality) FROM STDIN CSV HEADER"
+psql $psql_args -c "ALTER TABLE eqged.population ALTER COLUMN population_src_id DROP DEFAULT"
+
+exit 0
