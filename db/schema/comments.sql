@@ -65,18 +65,19 @@ COMMENT ON COLUMN eqged.agg_build_infra_src.the_geom IS 'geometry of area within
 COMMENT ON COLUMN eqged.agg_build_infra_src.shape_perimeter IS 'perimeter of geometry, to keep consistency with ESRI format';
 COMMENT ON COLUMN eqged.agg_build_infra_src.shape_area IS 'area of geometry, to keep consistency with ESRI format';
 
-COMMENT ON TABLE eqged.grid_point IS 'Table to store the geometry and simple attributes of points representing 30 arc-second cells. Mapping schemes are applied to these cells to produce global or regional sets of data with modeled or measured exposure attributes for use in GEM software.';
+COMMENT ON TABLE eqged.grid_point IS 'Table to store the geometry of points representing 30 arc-second cells. Mapping schemes are applied to these cells to produce global or regional sets of data with modeled or measured exposure attributes for use in GEM software.';
 COMMENT ON COLUMN eqged.grid_point.id IS 'Unique identifier';
 COMMENT ON COLUMN eqged.grid_point.the_geom IS 'Point geometry, one point for every 30 arc-second cell of the planet''s inhabitable land area (excludes Antarctica, water bodies, permanent ice, and oceans). Can easily be converted to a raster. Point-in-polygon operation (via SQL or programmatically) can be used to identify points within a mapping scheme geometry.';
 COMMENT ON COLUMN eqged.grid_point.lat IS 'Latitude of the point in decimal degrees. Although available from the_geom, it is also easier to store than calculate on the fly. Additionally, if the point data are projected this is not readily available. ';
 COMMENT ON COLUMN eqged.grid_point.lon IS 'Longitude of the point in decimal degrees. Although available from the_geom, it is also easier to store than calculate on the fly. Additionally, if the point data are projected this is not readily available. ';
-COMMENT ON COLUMN eqged.grid_point.land_area IS 'Land area in square km of the 30 arc-second cell. Useful for calculating densities (population, housing, etc.). Varies with latitude. For cells that are part land and part water or permanent ice, the area only reflects the land portion of the cell.';
-COMMENT ON COLUMN eqged.grid_point.is_urban IS 'Boolean flag for geometries that are within an urban area as defined by the GRUMPv1 urban-rural layer.';
-COMMENT ON COLUMN eqged.grid_point.urban_measure_quality IS 'Qualitative measure of the reliability of the urban-rural mask on a per-point basis. Not yet available.';
-COMMENT ON COLUMN eqged.grid_point.date_created IS 'Date of last update for the point.';
-COMMENT ON COLUMN eqged.grid_point.cresta_zone IS 'Cresta zone identifier (foreign key)';
-COMMENT ON COLUMN eqged.grid_point.cresta_subzone IS 'Cresta subzone identifier (foreign key)';
-COMMENT ON COLUMN eqged.grid_point.organization_id IS 'organization identifier (foreign key)';
+COMMENT ON TABLE eqged.grid_point_attr IS 'Simple attributes of the grid points. Kept in a separate table to ease database loading.'
+COMMENT ON COLUMN eqged.grid_point_attr.land_area IS 'Land area in square km of the 30 arc-second cell. Useful for calculating densities (population, housing, etc.). Varies with latitude. For cells that are part land and part water or permanent ice, the area only reflects the land portion of the cell.';
+COMMENT ON COLUMN eqged.grid_point_attr.is_urban IS 'Boolean flag for geometries that are within an urban area as defined by the GRUMPv1 urban-rural layer.';
+COMMENT ON COLUMN eqged.grid_point_attr.urban_measure_quality IS 'Qualitative measure of the reliability of the urban-rural mask on a per-point basis. Not yet available.';
+COMMENT ON COLUMN eqged.grid_point_attr.date_created IS 'Date of last update for the point.';
+COMMENT ON COLUMN eqged.grid_point_attr.cresta_zone IS 'Cresta zone identifier (foreign key)';
+COMMENT ON COLUMN eqged.grid_point_attr.cresta_subzone IS 'Cresta subzone identifier (foreign key)';
+COMMENT ON COLUMN eqged.grid_point_attr.organization_id IS 'organization identifier (foreign key)';
 
 COMMENT ON TABLE eqged.gadm_country IS 'Global Administrative Units layer at the country level. Useful for matching country-level attributes to the grid_point table. Also may be used for cartographic purposes.';
 COMMENT ON COLUMN eqged.gadm_country.id IS 'Unique identifier';

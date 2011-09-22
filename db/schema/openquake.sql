@@ -283,13 +283,6 @@ CREATE TABLE eqged.grid_point (
     id integer PRIMARY KEY,
     lat double precision NOT NULL,
     lon double precision NOT NULL,
-    land_area double precision NOT NULL,
-    is_urban boolean NOT NULL,
-    urban_measure_quality double precision,
-    date_created timestamp without time zone DEFAULT timezone('UTC'::text, now()) NOT NULL,
-    cresta_zone integer,
-    cresta_subzone integer,
-    organization_id integer,
     CONSTRAINT grid_point_lat_check
         CHECK (((lat >= ((-90.0))::double precision) AND (lat <= (90.0)::double precision))),
     CONSTRAINT grid_point_lon_check
@@ -297,6 +290,18 @@ CREATE TABLE eqged.grid_point (
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'grid_point', 'the_geom', 4326, 'POINT', 2);
 ALTER TABLE eqged.grid_point ALTER COLUMN the_geom SET NOT NULL;
+
+-- Global grid attributes
+CREATE TABLE eqged.grid_point_attr (
+    grid_point_id integer PRIMARY KEY,
+    land_area double precision NOT NULL,
+    is_urban boolean NOT NULL,
+    urban_measure_quality double precision,
+    date_created timestamp without time zone DEFAULT timezone('UTC'::text, now()) NOT NULL,
+    cresta_zone integer,
+    cresta_subzone integer,
+    organization_id integer
+) TABLESPACE eqged_ts;
 
 CREATE TABLE eqged.grid_point_admin_1 (
     grid_point_id integer NOT NULL,
@@ -1092,13 +1097,16 @@ FOREIGN KEY (gadm_country_id) REFERENCES eqged.gadm_country(id);
 ALTER TABLE eqged.gadm_admin_2 ADD CONSTRAINT eqged_gadm_admin_2_gadm_admin_1_fk
 FOREIGN KEY (gadm_admin_1_id) REFERENCES eqged.gadm_admin_1(id);
 
-ALTER TABLE eqged.grid_point ADD CONSTRAINT eqged_grid_point_cresta_zone_cresta_subzone_fk
+ALTER TABLE eqged.grid_point_attr ADD CONSTRAINT eqged_grid_point_attr_grid_point_fk
+FOREIGN KEY (grid_point_id) REFERENCES eqged.grid_point(id);
+
+ALTER TABLE eqged.grid_point_attr ADD CONSTRAINT eqged_grid_point_attr_cresta_zone_cresta_subzone_fk
 FOREIGN KEY (cresta_subzone) REFERENCES eqged.cresta_zone(id);
 
-ALTER TABLE eqged.grid_point ADD CONSTRAINT eqged_grid_point_cresta_zone_cresta_zone_fk
+ALTER TABLE eqged.grid_point_attr ADD CONSTRAINT eqged_grid_point_attr_cresta_zone_cresta_zone_fk
 FOREIGN KEY (cresta_zone) REFERENCES eqged.cresta_zone(id);
 
-ALTER TABLE eqged.grid_point ADD CONSTRAINT eqged_grid_point_organization_fk
+ALTER TABLE eqged.grid_point_attr ADD CONSTRAINT eqged_grid_point_attr_organization_fk
 FOREIGN KEY (organization_id) REFERENCES admin.organization(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 ALTER TABLE eqged.grid_point_admin_1 ADD CONSTRAINT eqged_grid_point_admin_1_gadm_admin_1_fk
