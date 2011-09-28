@@ -1,0 +1,64 @@
+#!/bin/sh
+
+help() {
+cat <<HSD
+`basename $0` loads the global grid into the OpenQuake database from a
+shapefile.
+
+The command line arguments are as follows:
+
+    --db-name=name         The name of the database to set up.
+    --db-user=user         Run all commands as this database user [postgres].
+    --shapefile-path=path  Absolute path to directory with the grid shapefile.
+HSD
+exit 0
+}
+
+if [ $# -eq 0 ]; then
+    help
+fi
+
+db_admin_user="postgres"
+
+for i in $*
+do
+    case $i in
+    --shapefile-path=*)
+        shapefile_path=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+        test \( -d "$shapefile_path" -a -r "$shapefile_path" \)
+        if [ $? -ne 0 ]; then
+            echo "!! Shapefile path $shapefile_path does not exist or is not readable."
+            exit 1
+        fi
+        ;;
+    --db-name=*)
+        db_name=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+        ;;
+    --db-user=*)
+        db_admin_user=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+        ;;
+    -h|--help)
+        help
+        ;;
+    *)
+        echo "Unknown option: " $i
+        exit 2
+        ;;
+    esac
+done
+
+shapefile="`ls $shapefile_path/*.shp`"
+if [ ! -r "$shapefile" ]; then
+    echo "!! Could not find/read grid shapefile: $shapefile"
+    exit 3
+fi
+
+
+if [ -z "$db_name" ]; then
+    echo "!! Please specify a database name."
+    exit 4
+fi
+
+shp2pgsql -a -D -s 4326 -I -N skip "$shapefile" eqged.grid_point | psql -d $db_name -U $db_admin_user
+
+exit 0
