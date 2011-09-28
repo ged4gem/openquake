@@ -1,0 +1,61 @@
+#!/bin/sh
+
+help() {
+cat <<HSD
+`basename $0` loads the global grid attributes into the OpenQuake database
+from a CSV dataset.
+
+The command line arguments are as follows:
+
+    --db-name=name         The name of the database to set up.
+    --db-user=user         Run all commands as this database user [postgres].
+    --dataset=path         Absolute path to directory with the grid shapefile.
+HSD
+exit 0
+}
+
+if [ $# -eq 0 ]; then
+    help
+fi
+
+db_admin_user="postgres"
+
+for i in $*
+do
+    case $i in
+    --dataset=*)
+        dataset=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+        test \( -f "$dataset" -a -r "$archive" \)
+        if [ $? -ne 0 ]; then
+            echo "!! Dataset $dataset does not exist or is not readable."
+            exit 1
+        fi
+        ;;
+    --db-name=*)
+        db_name=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+        ;;
+    --db-user=*)
+        db_admin_user=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
+        ;;
+    -h|--help)
+        help
+        ;;
+    *)
+        echo "Unknown option: " $i
+        exit 2
+        ;;
+    esac
+done
+
+if [ -z "$db_name" ]; then
+    echo "!! Please specify a database name."
+    exit 4
+fi
+
+psql_args="-d $db_name -U $db_admin_user"
+
+echo "Loading grid attributes dataset..."
+file $dataset | grep -q "bzip2" && CAT="bzcat" || CAT="cat"
+$CAT $dataset | psql $psql_args -c "COPY eqged.population (grid_point_id,land_area,is_urban,urban_measure_quality) FROM STDIN CSV HEADER"
+
+exit 0
