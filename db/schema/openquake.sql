@@ -210,8 +210,11 @@ CREATE TABLE eqged.agg_build_infra_src (
     shape_perimeter eqged.nonnegative,
     shape_area eqged.nonnegative,
     date date,
+    is_entire_study_region boolean,
+    notes VARCHAR,
     mapping_scheme_src_id integer,
-    study_region_id integer
+    study_region_id integer,
+    gadm_country_id integer
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'agg_build_infra_src', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.agg_build_infra_src ALTER COLUMN the_geom SET NOT NULL;
@@ -391,7 +394,8 @@ CREATE TABLE eqged.pop_allocation (
     is_urban boolean NOT NULL,
     day_pop_ratio eqged.proportion NOT NULL,
     night_pop_ratio eqged.proportion NOT NULL,
-    transit_pop_ratio eqged.proportion NOT NULL
+    transit_pop_ratio eqged.proportion NOT NULL,
+    occupancy character(10) NOT NULL
 ) TABLESPACE eqged_ts;
 
 -- study regions
@@ -1084,6 +1088,9 @@ FOREIGN KEY (mapping_scheme_src_id) REFERENCES eqged.mapping_scheme_src(id) ON U
 
 ALTER TABLE eqged.agg_build_infra_src ADD CONSTRAINT eqged_agg_build_infra_src_study_region_fk
 FOREIGN KEY (study_region_id) REFERENCES eqged.study_region(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+ALTER TABLE eqged.agg_build_infra_src ADD CONSTRAINT eqged_agg_build_infra_src_gadm_country_fk
+FOREIGN KEY (gadm_country_id) REFERENCES eqged.gadm_country(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 ALTER TABLE eqged.cresta_country ADD CONSTRAINT eqged_cresta_country_gadm_country_fk
 FOREIGN KEY (gadm_country_id) REFERENCES eqged.gadm_country(id);
