@@ -9,7 +9,7 @@ The command line arguments are as follows:
 
     --db-name=name         The name of the database to set up.
     --db-user=user         Run all commands as this database user [postgres].
-    --dataset=path         Absolute path to directory with the grid shapefile.
+    --dataset=path         Absolute path to the grid attributes dataset.
 HSD
 exit 0
 }
@@ -25,7 +25,7 @@ do
     case $i in
     --dataset=*)
         dataset=`echo $i | sed 's/[-a-zA-Z0-9]*=//'`
-        test \( -f "$dataset" -a -r "$archive" \)
+        test \( -f "$dataset" -a -r "$dataset" \)
         if [ $? -ne 0 ]; then
             echo "!! Dataset $dataset does not exist or is not readable."
             exit 1
@@ -56,6 +56,6 @@ psql_args="-d $db_name -U $db_admin_user"
 
 echo "Loading grid attributes dataset..."
 file $dataset | grep -q "bzip2" && CAT="bzcat" || CAT="cat"
-$CAT $dataset | psql $psql_args -c "COPY eqged.population (grid_point_id,land_area,is_urban,urban_measure_quality) FROM STDIN CSV HEADER"
+$CAT $dataset | psql $psql_args -c "COPY eqged.grid_point_attribute (grid_point_id,land_area,is_urban,urban_measure_quality) FROM STDIN CSV HEADER"
 
 exit 0

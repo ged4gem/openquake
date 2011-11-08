@@ -157,6 +157,13 @@ CREATE DOMAIN eqged.proportion AS double precision
 CREATE DOMAIN eqged.taxonomy AS VARCHAR(10)
     CONSTRAINT taxonomy_check CHECK (((VALUE)::text = 'PAGER'::text));
 
+-- poor man's occupancy enum
+CREATE DOMAIN eqged.occupancy AS VARCHAR(10)
+    CONSTRAINT taxonomy_check CHECK (
+        ((VALUE)::text = 'Res'::text) or 
+        ((VALUE)::text = 'Non-Res'::text) or 
+        ((VALUE)::text = 'Outdoor'::text));
+
 -- 3rd level administrative borders
 CREATE TABLE eqged.admin_3 (
     id integer PRIMARY KEY,
@@ -175,30 +182,27 @@ CREATE TABLE eqged.agg_build_infra (
     id bigint PRIMARY KEY,
     grid_point_id integer NOT NULL,
     agg_build_infra_src_id integer NOT NULL,
-    struct_ms_class VARCHAR,
-    height_ms_class VARCHAR,
-    occ_ms_class VARCHAR,
-    age_ms_class VARCHAR,
-    num_buildings double precision,
-    struct_area double precision
+    ms_class_id integer NOT NULL
 ) TABLESPACE eqged_ts;
 
 -- aggregate building infrastructure population values
 CREATE TABLE eqged.agg_build_infra_pop (
+    id bigint PRIMARY KEY,
     agg_build_infra_pop_ratio_id bigint NOT NULL,
     population_id bigint NOT NULL,
     day_pop double precision NOT NULL,
     night_pop double precision NOT NULL,
     transit_pop double precision NOT NULL,
-    PRIMARY KEY(agg_build_infra_pop_ratio_id, population_id)
+    num_buildings double precision,
+    struct_area double precision
 ) TABLESPACE eqged_ts;
 
 -- aggregate building infrastructure population ratios
 CREATE TABLE eqged.agg_build_infra_pop_ratio (
     id bigint PRIMARY KEY,
-    agg_build_infra_id bigint NOT NULL,
     gadm_country_id integer NOT NULL,
     grid_point_id integer NOT NULL,
+    agg_build_infra_src_id integer NOT NULL,
     day_pop_ratio eqged.proportion NOT NULL,
     night_pop_ratio eqged.proportion NOT NULL,
     transit_pop_ratio eqged.proportion NOT NULL
@@ -210,11 +214,12 @@ CREATE TABLE eqged.agg_build_infra_src (
     shape_perimeter eqged.nonnegative,
     shape_area eqged.nonnegative,
     date date,
-    is_entire_study_region boolean,
     notes VARCHAR,
     mapping_scheme_src_id integer,
     study_region_id integer,
-    gadm_country_id integer
+    gadm_country_id integer,
+    gadm_admin_1_id integer,
+    gadm_admin_2_id integer
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'agg_build_infra_src', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.agg_build_infra_src ALTER COLUMN the_geom SET NOT NULL;
@@ -295,7 +300,7 @@ SELECT AddGeometryColumn('eqged', 'grid_point', 'the_geom', 4326, 'POINT', 2);
 ALTER TABLE eqged.grid_point ALTER COLUMN the_geom SET NOT NULL;
 
 -- Global grid attributes
-CREATE TABLE eqged.grid_point_attr (
+CREATE TABLE eqged.grid_point_attribute (
     grid_point_id integer PRIMARY KEY,
     land_area double precision NOT NULL,
     is_urban boolean NOT NULL,
@@ -346,7 +351,7 @@ CREATE TABLE eqged.mapping_scheme_class (
     name VARCHAR NOT NULL,
     description VARCHAR,
     taxonomy eqged.taxonomy,
-    ms_class_id integer
+    ms_type_class_id integer
 ) TABLESPACE eqged_ts;
 
 -- mapping scheme sources
@@ -401,20 +406,19 @@ CREATE TABLE eqged.pop_allocation (
 -- study regions
 CREATE TABLE eqged.study_region (
     id integer PRIMARY KEY,
-    name VARCHAR(50),
+    name VARCHAR,
     date_created timestamp without time zone DEFAULT timezone('UTC'::text, now()) NOT NULL,
-    taxonomy eqged.taxonomy,
     notes text,
     oq_user_id integer
 ) TABLESPACE eqged_ts;
 
 -- mapping scheme view
 CREATE VIEW eqged.view_mapping_scheme AS 
-    SELECT ms1.id, ms1.mapping_scheme_src_id, ms2.id AS parent_ms_id, c2.ms_type_id AS parent_ms_type_id, c2.ms_class_id AS parent_ms_class_id, c2.name AS parent_ms_name, c1.ms_type_id, c1.ms_class_id, c1.name AS ms_name, ms1.ms_value
+    SELECT ms1.id, ms1.mapping_scheme_src_id, ms2.id AS parent_ms_id, c2.ms_type_id AS parent_ms_type_id, c2.ms_type_class_id AS parent_ms_class_id, c2.name AS parent_ms_name, c1.ms_type_id, c1.ms_type_class_id, c1.name AS ms_name, ms1.ms_value
       FROM eqged.mapping_scheme ms1
-      JOIN eqged.mapping_scheme_class c1 ON ms1.ms_class_id = c1.id
+      JOIN eqged.mapping_scheme_class c1 ON ms1.ms_type_class_id = c1.id
       LEFT JOIN eqged.mapping_scheme ms2 ON ms1.parent_ms_id = ms2.id
-      LEFT JOIN eqged.mapping_scheme_class c2 ON ms2.ms_class_id = c2.id;
+      LEFT JOIN eqged.mapping_scheme_class c2 ON ms2.ms_type_class_id = c2.id;
 
 -- rupture
 CREATE TABLE pshai.rupture (
@@ -1071,14 +1075,17 @@ FOREIGN KEY (grid_point_id) REFERENCES eqged.grid_point(id) ON UPDATE CASCADE ON
 ALTER TABLE eqged.agg_build_infra ADD CONSTRAINT eqged_agg_build_infra_agg_build_infra_src_fk
 FOREIGN KEY (agg_build_infra_src_id) REFERENCES eqged.agg_build_infra_src(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
+ALTER TABLE eqged.agg_build_infra ADD CONSTRAINT eqged_agg_build_infra_mapping_scheme_class_fk
+FOREIGN KEY (ms_class_id) REFERENCES eqged.mapping_scheme_class(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
 ALTER TABLE eqged.agg_build_infra_pop ADD CONSTRAINT eqged_agg_build_infra_pop_agg_build_infra_pop_ratio_fk
 FOREIGN KEY (agg_build_infra_pop_ratio_id) REFERENCES eqged.agg_build_infra_pop_ratio(id);
 
 ALTER TABLE eqged.agg_build_infra_pop ADD CONSTRAINT eqged_agg_build_infra_pop_population_fk
 FOREIGN KEY (population_id) REFERENCES eqged.population(id);
 
-ALTER TABLE eqged.agg_build_infra_pop_ratio ADD CONSTRAINT eqged_agg_build_infra_pop_ratio_agg_build_infra_fk
-FOREIGN KEY (agg_build_infra_id) REFERENCES eqged.agg_build_infra(id);
+ALTER TABLE eqged.agg_build_infra_pop_ratio ADD CONSTRAINT eqged_agg_build_infra_pop_ratio_agg_build_infra_src_fk
+FOREIGN KEY (agg_build_infra_src_id) REFERENCES eqged.agg_build_infra_src(id);
 
 ALTER TABLE eqged.agg_build_infra_pop_ratio ADD CONSTRAINT eqged_agg_build_infra_pop_ratio_grid_point_country_fk
 FOREIGN KEY (gadm_country_id, grid_point_id) REFERENCES eqged.grid_point_country(gadm_country_id, grid_point_id);
@@ -1092,6 +1099,12 @@ FOREIGN KEY (study_region_id) REFERENCES eqged.study_region(id) ON UPDATE CASCAD
 ALTER TABLE eqged.agg_build_infra_src ADD CONSTRAINT eqged_agg_build_infra_src_gadm_country_fk
 FOREIGN KEY (gadm_country_id) REFERENCES eqged.gadm_country(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
+ALTER TABLE eqged.agg_build_infra_src ADD CONSTRAINT eqged_agg_build_infra_src_gadm_admin_1_fk
+FOREIGN KEY (gadm_admin_1_id) REFERENCES eqged.gadm_admin_1(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
+ALTER TABLE eqged.agg_build_infra_src ADD CONSTRAINT eqged_agg_build_infra_src_gadm_admin_2_fk
+FOREIGN KEY (gadm_admin_2_id) REFERENCES eqged.gadm_admin_2(id) ON UPDATE CASCADE ON DELETE SET NULL;
+
 ALTER TABLE eqged.cresta_country ADD CONSTRAINT eqged_cresta_country_gadm_country_fk
 FOREIGN KEY (gadm_country_id) REFERENCES eqged.gadm_country(id);
 
@@ -1104,16 +1117,16 @@ FOREIGN KEY (gadm_country_id) REFERENCES eqged.gadm_country(id);
 ALTER TABLE eqged.gadm_admin_2 ADD CONSTRAINT eqged_gadm_admin_2_gadm_admin_1_fk
 FOREIGN KEY (gadm_admin_1_id) REFERENCES eqged.gadm_admin_1(id);
 
-ALTER TABLE eqged.grid_point_attr ADD CONSTRAINT eqged_grid_point_attr_grid_point_fk
+ALTER TABLE eqged.grid_point_attr ADD CONSTRAINT eqged_grid_point_attribute_grid_point_fk
 FOREIGN KEY (grid_point_id) REFERENCES eqged.grid_point(id);
 
-ALTER TABLE eqged.grid_point_attr ADD CONSTRAINT eqged_grid_point_attr_cresta_zone_cresta_subzone_fk
+ALTER TABLE eqged.grid_point_attr ADD CONSTRAINT eqged_grid_point_attribute_cresta_zone_cresta_subzone_fk
 FOREIGN KEY (cresta_subzone) REFERENCES eqged.cresta_zone(id);
 
-ALTER TABLE eqged.grid_point_attr ADD CONSTRAINT eqged_grid_point_attr_cresta_zone_cresta_zone_fk
+ALTER TABLE eqged.grid_point_attr ADD CONSTRAINT eqged_grid_point_attribute_cresta_zone_cresta_zone_fk
 FOREIGN KEY (cresta_zone) REFERENCES eqged.cresta_zone(id);
 
-ALTER TABLE eqged.grid_point_attr ADD CONSTRAINT eqged_grid_point_attr_organization_fk
+ALTER TABLE eqged.grid_point_attr ADD CONSTRAINT eqged_grid_point_attribute_organization_fk
 FOREIGN KEY (organization_id) REFERENCES admin.organization(id) ON UPDATE CASCADE ON DELETE SET NULL;
 
 ALTER TABLE eqged.grid_point_admin_1 ADD CONSTRAINT eqged_grid_point_admin_1_gadm_admin_1_fk
