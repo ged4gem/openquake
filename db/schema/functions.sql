@@ -235,7 +235,7 @@ DECLARE
         my_type integer;
         counter integer := 1;
         myrow RECORD;
-        myquery text := 'SELECT t1.mapping_scheme_src_id, ';
+        myquery text := 'SELECT t1.mapping_scheme_src_id, row_number() over (partition by mapping_scheme_src_id) row_id,';
         tname char(2);
         oldtname char(2);
         from_clause text := ' FROM ';
@@ -249,24 +249,22 @@ BEGIN
   END IF;
 
   for myrow in execute
-    'select parent_ms_type_id, ms_type_id from ' || ms_table || ' group by parent_ms_type_id, ms_type_id order by parent_ms_type_id, ms_type_id'
+    'select ms_type_id from ' || ms_table || ' group by ms_type_id order by ms_type_id'
   loop
-     my_parent_type := myrow.parent_ms_type_id;
      my_type := myrow.ms_type_id;
      tname := 't' || counter; -- table identifier (e.g. t1)
-     myquery := myquery || tname || '.ms_type_id AS ' || tname || '_ms_type_id, ' || tname || '.ms_class_id AS ' || tname || '_ms_class_id, ' || tname || '.ms_name AS ' || tname || '_ms_name, ' || ' CASE WHEN ' || tname || '.ms_value IS NULL THEN 1 ELSE ' || tname || '.ms_value END AS ' || tname || '_ms_value, ';
+     myquery := myquery || tname || '.ms_type_id AS ' || tname || '_ms_type_id, ' || tname || '.ms_type_class_id AS ' || tname || '_ms_type_class_id, ' || tname || '.ms_name AS ' || tname || '_ms_name, ' || ' CASE WHEN ' || tname || '.ms_value IS NULL THEN 1 ELSE ' || tname || '.ms_value END AS ' || tname || '_ms_value, ';
      
      if counter > 1 then
-             from_clause := from_clause || ' LEFT JOIN ';
+        from_clause := from_clause || ' LEFT JOIN ';
         product := product || ' * ';
      end if;
 
      product := product || 'CASE WHEN ' || tname || '.ms_value IS NULL THEN 1 ELSE ' || tname || '.ms_value END';
-     from_clause := from_clause || '( SELECT * FROM ' || ms_table || ' WHERE parent_ms_type_id=' || my_parent_type || ' ) ' || tname;
-     
-    if counter > 1 then
-        from_clause := from_clause || ' ON ' || oldtname || '.ms_type_id=' || tname || '.parent_ms_type_id AND ' || oldtname || '.ms_class_id=' || tname || '.parent_ms_class_id AND ' || oldtname || '.mapping_scheme_src_id = ' || tname || '.mapping_scheme_src_id';
-    END IF;
+     from_clause := from_clause || '( SELECT * FROM ' || ms_table || ' WHERE ms_type_id=' || my_type || ' ) ' || tname;
+     if counter > 1 then
+        from_clause := from_clause || ' ON ' || oldtname || '.id=' || tname || '.parent_ms_id ';
+     END IF;
     
     oldtname := tname;
     counter := counter + 1;

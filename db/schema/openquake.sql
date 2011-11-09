@@ -408,11 +408,11 @@ CREATE TABLE eqged.study_region (
 
 -- mapping scheme view
 CREATE VIEW eqged.view_mapping_scheme AS 
-    SELECT ms1.id, ms1.mapping_scheme_src_id, ms2.id AS parent_ms_id, c2.ms_type_id AS parent_ms_type_id, c2.ms_type_class_id AS parent_ms_class_id, c2.name AS parent_ms_name, c1.ms_type_id, c1.ms_type_class_id, c1.name AS ms_name, ms1.ms_value
+    SELECT ms1.id, ms1.mapping_scheme_src_id, ms2.id AS parent_ms_id, c2.ms_type_id AS parent_ms_type_id, c2.ms_class_id AS parent_ms_class_id, c2.name AS parent_ms_name, c1.ms_type_id, c1.ms_class_id, c1.name AS ms_name, ms1.ms_value
       FROM eqged.mapping_scheme ms1
-      JOIN eqged.mapping_scheme_class c1 ON ms1.ms_type_class_id = c1.id
+      JOIN eqged.mapping_scheme_class c1 ON ms1.ms_class_id = c1.id
       LEFT JOIN eqged.mapping_scheme ms2 ON ms1.parent_ms_id = ms2.id
-      LEFT JOIN eqged.mapping_scheme_class c2 ON ms2.ms_type_class_id = c2.id;
+      LEFT JOIN eqged.mapping_scheme_class c2 ON ms2.ms_class_id = c2.id;
 
 -- rupture
 CREATE TABLE pshai.rupture (
