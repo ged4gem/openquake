@@ -173,9 +173,8 @@ ALTER TABLE eqged.admin_3 ALTER COLUMN the_geom SET NOT NULL;
 -- aggregate building infrastructure
 CREATE TABLE eqged.agg_build_infra (
     id bigint PRIMARY KEY,
-    grid_point_id integer NOT NULL,
     agg_build_infra_src_id integer NOT NULL,
-    ms_class_group_id integer NOT NULL,
+    ms_class_group integer NOT NULL,
     ms_class_id integer NOT NULL
 ) TABLESPACE eqged_ts;
 
@@ -197,6 +196,7 @@ CREATE TABLE eqged.agg_build_infra_pop_ratio (
     gadm_country_id integer NOT NULL,
     grid_point_id integer NOT NULL,
     agg_build_infra_src_id integer NOT NULL,
+    ms_class_group_id integer NOT NULL,
     day_pop_ratio eqged.proportion NOT NULL,
     night_pop_ratio eqged.proportion NOT NULL,
     transit_pop_ratio eqged.proportion NOT NULL

@@ -305,8 +305,8 @@ begin
 			if (src_record.gadm_admin_1_id is not null) then
 				if (src_record.gadm_admin_2_id is not null) then
 					raise notice '  using GADM admin2 region %', src_record.gadm_admin_2_id;
-					insert into agg_build_infra_pop_ratio (agg_build_infra_id, gadm_country_id, grid_point_id, day_pop_ratio, night_pop_ratio, transit_pop_ratio)
-					select eqged.agg_build_infra.id, src_record.gadm_country_id, a.grid_point_id,
+					insert into agg_build_infra_pop_ratio (agg_build_infra_src_id, ms_class_group, gadm_country_id, grid_point_id, day_pop_ratio, night_pop_ratio, transit_pop_ratio)
+					select agg.agg.build_infra_src_id, agg.ms_class_group, src_record.gadm_country_id, a.grid_point_id,
 					  ms.ms_value * p.day_pop_ratio, ms.ms_value * p.night_pop_ratio, 
 					  ms.ms_value * p.transit_pop_ratio
 					from eqged.agg_build_infra agg, eqged.pop_allocation p, eqged.foo ms, 
@@ -323,15 +323,15 @@ begin
 					  where c.ms_type_id = 5
 					) occ,
 					where agg.agg_build_infra_src_id = src_record.id and
-					      agg.ms_class_group_id = ms.row_id and
+					      agg.ms_class_group = ms.row_id and
 					      ms.mapping_scheme_src_id = src_record.mapping_scheme_src_id and
 					      p.gadm_country_id = src_record.gadm_country_id and
 					      p.is_urban = g.is_urban and p.occupancy_id = occ.id;					
 						end if;
 				else
 					raise notice '  using GADM admin1 region %', src_record.gadm_admin_1_id;
-					insert into agg_build_infra_pop_ratio (agg_build_infra_id, gadm_country_id, grid_point_id, day_pop_ratio, night_pop_ratio, transit_pop_ratio)
-					select eqged.agg_build_infra.id, src_record.gadm_country_id, a.grid_point_id,
+					insert into agg_build_infra_pop_ratio (agg_build_infra_src_id, ms_class_group, gadm_country_id, grid_point_id, day_pop_ratio, night_pop_ratio, transit_pop_ratio)
+					select agg.agg.build_infra_src_id, agg.ms_class_group, src_record.gadm_country_id, a.grid_point_id,
 					  ms.ms_value * p.day_pop_ratio, ms.ms_value * p.night_pop_ratio, 
 					  ms.ms_value * p.transit_pop_ratio
 					from eqged.agg_build_infra agg, eqged.pop_allocation p, eqged.foo ms, 
@@ -348,7 +348,7 @@ begin
 					  where c.ms_type_id = 5
 					) occ,
 					where agg.agg_build_infra_src_id = src_record.id and
-					      agg.ms_class_group_id = ms.row_id and
+					      agg.ms_class_group = ms.row_id and
 					      ms.mapping_scheme_src_id = src_record.mapping_scheme_src_id and
 					      p.gadm_country_id = src_record.gadm_country_id and
 					      p.is_urban = g.is_urban and p.occupancy_id = occ.id;					
@@ -357,8 +357,8 @@ begin
 				raise notice '  using GADM country region %', src_record.gadm_country_id;
 			end if;
 			
-			insert into agg_build_infra_pop_ratio (agg_build_infra_id, gadm_country_id, grid_point_id, day_pop_ratio, night_pop_ratio, transit_pop_ratio)
-			select eqged.agg_build_infra.id, src_record.gadm_country_id, a.grid_point_id,
+			insert into agg_build_infra_pop_ratio (agg_build_infra_src_id, ms_class_group, gadm_country_id, grid_point_id, day_pop_ratio, night_pop_ratio, transit_pop_ratio)
+			select agg.agg.build_infra_src_id, agg.ms_class_group, src_record.gadm_country_id, a.grid_point_id,
 			  ms.ms_value * p.day_pop_ratio, ms.ms_value * p.night_pop_ratio, 
 			  ms.ms_value * p.transit_pop_ratio
 			from eqged.agg_build_infra agg, eqged.pop_allocation p, eqged.foo ms, 
@@ -375,14 +375,14 @@ begin
 			  where c.ms_type_id = 5
 			) occ,
 			where agg.agg_build_infra_src_id = src_record.id and
-			      agg.ms_class_group_id = ms.row_id and
+			      agg.ms_class_group = ms.row_id and
 			      ms.mapping_scheme_src_id = src_record.mapping_scheme_src_id and
 			      p.gadm_country_id = src_record.gadm_country_id and
 			      p.is_urban = g.is_urban and p.occupancy_id = occ.id;
 		else
 			raise notice '  using point in polygon (not implemented)';
-			insert into agg_build_infra_pop_ratio (agg_build_infra_id, gadm_country_id, grid_point_id, day_pop_ratio, night_pop_ratio, transit_pop_ratio)
-			select eqged.agg_build_infra.id, src_record.gadm_country_id, a.grid_point_id,
+			insert into agg_build_infra_pop_ratio (agg_build_infra_src_id, ms_class_group, gadm_country_id, grid_point_id, day_pop_ratio, night_pop_ratio, transit_pop_ratio)
+			select agg.agg.build_infra_src_id, agg.ms_class_group, src_record.gadm_country_id, a.grid_point_id,
 			  ms.ms_value * p.day_pop_ratio, ms.ms_value * p.night_pop_ratio, 
 			  ms.ms_value * p.transit_pop_ratio
 			from eqged.agg_build_infra agg, eqged.pop_allocation p, eqged.foo ms, 
@@ -399,7 +399,7 @@ begin
 			  where c.ms_type_id = 5
 			) occ,
 			where agg.agg_build_infra_src_id = src_record.id and
-			      agg.ms_class_group_id = ms.row_id and
+			      agg.ms_class_group = ms.row_id and
 			      ms.mapping_scheme_src_id = src_record.mapping_scheme_src_id and
 			      p.gadm_country_id = src_record.gadm_country_id and
 			      p.is_urban = g.is_urban and p.occupancy_id = occ.id;			
@@ -410,7 +410,8 @@ begin
 		       pop_ratio.transit_pop_ratio * pop.pop_value
 		from eqged.agg_build_infra agg, eqged.agg_build_infra_pop_ratio pop_ratio, eqged.population pop
 		where pop_ratio.grid_point_id = pop.grid_point_id and pop.population_src_id = population_src_id
-		and agg.agg_build_infra_src_id = src_record.id and pop_ratio.agg_build_infra_id = agg.id;		
+		and agg.agg_build_infra_src_id = src_record.id and pop_ratio.agg_build_infra_id = agg.id
+		and pop_ratio.agg_build_infra_src_id = src_record.id and pop_ratio.ms_class_group = agg.ms_class_group;
 	end loop;
 end;
 $$;
