@@ -157,13 +157,6 @@ CREATE DOMAIN eqged.proportion AS double precision
 CREATE DOMAIN eqged.taxonomy AS VARCHAR(10)
     CONSTRAINT taxonomy_check CHECK (((VALUE)::text = 'PAGER'::text));
 
--- poor man's occupancy enum
-CREATE DOMAIN eqged.occupancy AS VARCHAR(10)
-    CONSTRAINT taxonomy_check CHECK (
-        ((VALUE)::text = 'Res'::text) or 
-        ((VALUE)::text = 'Non-Res'::text) or 
-        ((VALUE)::text = 'Outdoor'::text));
-
 -- 3rd level administrative borders
 CREATE TABLE eqged.admin_3 (
     id integer PRIMARY KEY,
@@ -182,6 +175,7 @@ CREATE TABLE eqged.agg_build_infra (
     id bigint PRIMARY KEY,
     grid_point_id integer NOT NULL,
     agg_build_infra_src_id integer NOT NULL,
+    ms_class_group_id integer NOT NULL,
     ms_class_id integer NOT NULL
 ) TABLESPACE eqged_ts;
 
@@ -400,7 +394,7 @@ CREATE TABLE eqged.pop_allocation (
     day_pop_ratio eqged.proportion NOT NULL,
     night_pop_ratio eqged.proportion NOT NULL,
     transit_pop_ratio eqged.proportion NOT NULL,
-    occupancy character(10) NOT NULL
+    occupancy_id integer NOT NULL
 ) TABLESPACE eqged_ts;
 
 -- study regions
