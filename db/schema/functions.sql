@@ -227,6 +227,89 @@ $$;
 COMMENT ON FUNCTION check_magnitude_data() IS
 'Make sure that at least one magnitude value is set.';
 
+CREATE OR REPLACE FUNCTION eqged.create_pager_exposure() RETURNS void
+LANGUAGE plpgsql AS
+$$
+DECLARE
+
+BEGIN
+	DropGeometryTable('eqged','pager_exposure');
+	CREATE TABLE eqged.pager_exposure(
+		id serial PRIMARY KEY,
+		agg_build_infra_src_id integer,
+		ms_class_group integer,
+		study_region_id integer,
+		grid_point_lat double precision,
+		grid_point_lon double precision,
+		gadm_country_name VARCHAR,
+		gadm_country_iso character(3),
+		gadm_admin_1_name VARCHAR,
+		gadm_admin_1_engtype VARCHAR,
+		gadm_admin_2_name VARCHAR,
+		gadm_admin_2_engtype VARCHAR,
+		pop_value double precision,
+		pop_quality double precision,
+		land_area double precision,
+		is_urban boolean,
+		struct_ms_class VARCHAR,
+		age_ms_class VARCHAR,
+		occ_ms_class, VARCHAR,
+		height_ms_class VARCHAR,
+		num_buildings double precision,
+		struct_area double precision,
+		day_pop_ratio double precision,
+		night_pop_ratio double precision,
+		transit_pop_ratio double precision,
+		day_pop double precision,
+		night_pop double precision,
+		transit_pop double precision,
+		notes VARCHAR
+	);
+	SELECT AddGeometryColumn('eqged', 'pager_exposure', 'grid_point_the_geom', 4326, 'POINT', 2);
+
+	CREATE TEMPORARY TABLE eqged_ms_crosstab AS
+	SELECT * FROM
+	  crosstab(
+  'SELECT agg_build_infra_src_id, ms_class_group, class.name, type.name
+  FROM eqged.agg_build_infra agg, eqged.mapping_scheme_class class, eqged.mapping_scheme_type type
+  WHERE agg.ms_class_id = class.id AND class.ms_type_id = type.id
+  ORDER BY agg_build_infra_src_id, ms_class_group',
+  'SELECT DISTINCT type.name
+  FROM eqged.agg_build_infra agg, eqged.mapping_scheme_class class, eqged.mapping_scheme_type type
+  WHERE agg.ms_class_id = class.id AND class.ms_type_id = type.id
+  ORDER BY type.name')
+	AS ct(agg_build_infra_src_id integer, ms_class_group integer, struct VARCHAR, height VARCHAR, occ VARCHAR, age VARCHAR)
+
+	INSERT INTO eqged.pager_exposure()
+	SELECT ms.agg_build_infra_src_id, ms.class_group, agg.study_region_id, g.lat, g.lon, gc.name, gc.iso,
+		ga1.name, ga1.engtype, ga2.name, ga2.engtype, pop.pop_value, pop.pop_quality,
+		a.land_area, a.is_urban, ms.struct, ms.age, ms.occ, ms.height, pop_ratio.num_buildings,
+		pop_ratio.struct_area, pop_ratio.day_pop_ratio, pop_ratio.night_pop_ratio,
+		pop_ratio.transit_pop_ratio, pop.day_pop, pop.night_pop, pop.transit_pop,
+		'', g.the_geom
+	FROM eqged.agg_build_infra_pop_ratio pop_ratio, 
+		eqged.agg_build_infra_pop pop, eqged_ms_crosstab ms, eqged.grid_point g,
+		eqged.grid_point_attribute a, eqged.grid_point_country gpc, eqged.gadm_country gc,
+		eqged.grid_point_admin_1 gpa1, eqged.gadm_admin_1 ga1,
+		eqged.grid_point_admin_2 gpa2, eqged.gadm_admin_2 ga2,
+		eqged.agg_build_infra_src agg
+	WHERE ms.agg_build_infra_src_id = pop_ratio.agg_build_infra_src_id AND
+		ms.ms_class_group = pop_ratio.ms_class_group AND
+		pop.agg_build_infra_pop_ratio_id = pop_ratio.id AND
+		pop_ratio.grid_point_id = g.id AND
+		a.grid_point_id = g.id AND
+		gpc.grid_point_id = g.id AND
+		gpc.gadm_country_id = gc.id AND
+		gpa1.grid_point_id = g.id AND
+		gpa1.gadm_admin_1_id = ga1.id AND
+		gpa2.grid_point_id = g.id AND
+		gpa2.gadm_admin_2_id = ga2.id AND
+		agg.id = ms.agg_build_infra_src_id
+
+	DROP TABLE eqged_ms_crosstab;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION eqged.fill_agg_build_infra(study_region_id numeric, population_src_id numeric) RETURNS void
 LANGUAGE plpgsql AS
 $$
