@@ -174,8 +174,9 @@ ALTER TABLE eqged.admin_3 ALTER COLUMN the_geom SET NOT NULL;
 CREATE TABLE eqged.agg_build_infra (
     id bigint PRIMARY KEY,
     agg_build_infra_src_id integer NOT NULL,
-    ms_class_group integer NOT NULL,
-    ms_class_id integer NOT NULL
+    mapping_scheme_id integer NOT NULL,
+    compound_ms_value double precision NOT NULL,
+    study_region_id integer NOT NULL
 ) TABLESPACE eqged_ts;
 
 -- aggregate building infrastructure population values
@@ -187,7 +188,8 @@ CREATE TABLE eqged.agg_build_infra_pop (
     night_pop double precision NOT NULL,
     transit_pop double precision NOT NULL,
     num_buildings double precision,
-    struct_area double precision
+    struct_area double precision,
+    study_region_id integer
 ) TABLESPACE eqged_ts;
 
 -- aggregate building infrastructure population ratios
@@ -196,10 +198,11 @@ CREATE TABLE eqged.agg_build_infra_pop_ratio (
     gadm_country_id integer NOT NULL,
     grid_point_id integer NOT NULL,
     agg_build_infra_src_id integer NOT NULL,
-    ms_class_group_id integer NOT NULL,
     day_pop_ratio eqged.proportion NOT NULL,
     night_pop_ratio eqged.proportion NOT NULL,
-    transit_pop_ratio eqged.proportion NOT NULL
+    transit_pop_ratio eqged.proportion NOT NULL,
+    study_region_id integer,
+    occupancy character varying(10)
 ) TABLESPACE eqged_ts;
 
 -- aggregate building infrastructure source
@@ -280,6 +283,27 @@ CREATE TABLE eqged.gadm_country (
 SELECT AddGeometryColumn('eqged', 'gadm_country', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.gadm_country ALTER COLUMN the_geom SET NOT NULL;
 
+-- GADM country attributes
+CREATE TABLE eqged.gadm_country_attribute (
+    id integer PRIMARY KEY,
+    gadm_country_id integer,
+    people_dwelling double precision,
+    dwellings_building double precision DEFAULT 1,
+    building_area double precision,
+    replacement_cost double precision,
+    num_buildings double precision,
+    date date
+) TABLESPACE eqged_ts;
+
+-- GADM country aggregate population values
+CREATE TABLE eqged.gadm_country_population (
+    id serial PRIMARY KEY,
+    gadm_country_id integer,
+    population_src_id integer,
+    pop_value double precision,
+    pop_count integer
+) TABLESPACE eqged_ts;
+
 -- Global grid
 CREATE TABLE eqged.grid_point (
     id integer PRIMARY KEY,
@@ -358,7 +382,9 @@ CREATE TABLE eqged.mapping_scheme_src (
     use_notes VARCHAR,
     quality VARCHAR,
     oq_user_id integer,
-    taxonomy eqged.taxonomy
+    taxonomy eqged.taxonomy,
+    is_urban boolean,
+    occupancy VARCHAR
 ) TABLESPACE eqged_ts;
 
 -- mapping scheme types
@@ -366,6 +392,35 @@ CREATE TABLE eqged.mapping_scheme_type (
     id integer PRIMARY KEY,
     name VARCHAR NOT NULL,
     description VARCHAR
+) TABLESPACE eqged_ts;
+
+-- PAGER-GEM taxonomy conversion table
+CREATE TABLE pager_to_gem (
+    id integer,
+    gem_id character varying(255),
+    gem_building_typology character varying(255),
+    pager_str character varying(255),
+    pager_description text,
+    gem_material character varying(255),
+    gem_material_type character varying(255),
+    gem_material_property character varying(255),
+    gem_vertical_load_system character varying(255),
+    gem_ductility character varying(255),
+    gem_horizontal_load_system character varying(255),
+    gem_height_category character varying(255),
+    gem_shorthand_form character varying(255)
+) TABLESPACE eqged_ts;
+
+-- population allocation
+CREATE TABLE eqged.pop_allocation (
+    id integer PRIMARY KEY,
+    gadm_country_id integer NOT NULL,
+    is_urban boolean NOT NULL,
+    day_pop_ratio eqged.proportion NOT NULL,
+    night_pop_ratio eqged.proportion NOT NULL,
+    transit_pop_ratio eqged.proportion NOT NULL,
+    occupancy_id integer,
+    occupancy VARCHAR
 ) TABLESPACE eqged_ts;
 
 -- population
@@ -386,17 +441,6 @@ CREATE TABLE eqged.population_src (
     date date NOT NULL
 ) TABLESPACE eqged_ts;
 
--- population allocation
-CREATE TABLE eqged.pop_allocation (
-    id integer PRIMARY KEY,
-    gadm_country_id integer NOT NULL,
-    is_urban boolean NOT NULL,
-    day_pop_ratio eqged.proportion NOT NULL,
-    night_pop_ratio eqged.proportion NOT NULL,
-    transit_pop_ratio eqged.proportion NOT NULL,
-    occupancy_id integer NOT NULL
-) TABLESPACE eqged_ts;
-
 -- study regions
 CREATE TABLE eqged.study_region (
     id integer PRIMARY KEY,
@@ -407,12 +451,12 @@ CREATE TABLE eqged.study_region (
 ) TABLESPACE eqged_ts;
 
 -- mapping scheme view
-CREATE VIEW eqged.view_mapping_scheme AS 
-    SELECT ms1.id, ms1.mapping_scheme_src_id, ms2.id AS parent_ms_id, c2.ms_type_id AS parent_ms_type_id, c2.ms_class_id AS parent_ms_class_id, c2.name AS parent_ms_name, c1.ms_type_id, c1.ms_class_id, c1.name AS ms_name, ms1.ms_value
-      FROM eqged.mapping_scheme ms1
-      JOIN eqged.mapping_scheme_class c1 ON ms1.ms_class_id = c1.id
-      LEFT JOIN eqged.mapping_scheme ms2 ON ms1.parent_ms_id = ms2.id
-      LEFT JOIN eqged.mapping_scheme_class c2 ON ms2.ms_class_id = c2.id;
+CREATE VIEW eqged.view_mapping_scheme AS
+    SELECT ms1.id, ms1.mapping_scheme_src_id, ms2.id AS parent_ms_id, c2.ms_type_id AS parent_ms_type_id, c2.id AS parent_ms_class_id, c2.name AS parent_ms_name, c1.ms_type_id, c1.id AS ms_class_id, c1.name AS ms_name, ms1.ms_value
+        FROM eqged.mapping_scheme ms1
+        JOIN eqged.mapping_scheme_class c1 ON ms1.ms_class_id = c1.id
+        LEFT JOIN eqged.mapping_scheme ms2 ON ms1.parent_ms_id = ms2.id
+        LEFT JOIN eqged.mapping_scheme_class c2 ON ms2.ms_class_id = c2.id;
 
 -- rupture
 CREATE TABLE pshai.rupture (
