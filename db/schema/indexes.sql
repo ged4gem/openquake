@@ -31,12 +31,12 @@ CREATE INDEX eqcat_catalog_depth_idx on eqcat.catalog(depth);
 CREATE INDEX eqcat_catalog_point_idx ON eqcat.catalog USING gist(point);
 
 -- eqged geometry indexes
-CREATE INDEX eqged_admin_3_the_geom_idx ON eqged.admin_3 USING gist(the_geom);
-CREATE INDEX eqged_agg_build_infra_src_the_geom_idx ON eqged.agg_build_infra_src USING gist(the_geom);
-CREATE INDEX eqged_grid_point_the_geom_idx ON eqged.grid_point USING gist(the_geom);
-CREATE INDEX eqged_gadm_admin_1_the_geom_idx ON eqged.gadm_admin_1 USING gist(the_geom);
-CREATE INDEX eqged_gadm_admin_2_the_geom_idx ON eqged.gadm_admin_2 USING gist(the_geom);
-CREATE INDEX eqged_gadm_country_the_geom_idx ON eqged.gadm_country USING gist(the_geom);
+CREATE INDEX eqged_admin_3_the_geom_idx ON eqged.admin_3 USING gist(the_geom) TABLESPACE eqged_ts;
+CREATE INDEX eqged_agg_build_infra_src_the_geom_idx ON eqged.agg_build_infra_src USING gist(the_geom) TABLESPACE eqged_ts;
+CREATE INDEX eqged_grid_point_the_geom_idx ON eqged.grid_point USING gist(the_geom) TABLESPACE eqged_ts;
+CREATE INDEX eqged_gadm_admin_1_the_geom_idx ON eqged.gadm_admin_1 USING gist(the_geom) TABLESPACE eqged_ts;
+CREATE INDEX eqged_gadm_admin_2_the_geom_idx ON eqged.gadm_admin_2 USING gist(the_geom) TABLESPACE eqged_ts;
+CREATE INDEX eqged_gadm_country_the_geom_idx ON eqged.gadm_country USING gist(the_geom) TABLESPACE eqged_ts;
 
 -- pshai.fault_edge
 CREATE INDEX pshai_fault_edge_bottom_idx ON pshai.fault_edge USING gist(bottom);
