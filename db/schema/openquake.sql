@@ -282,6 +282,7 @@ CREATE TABLE eqged.gadm_country (
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'gadm_country', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.gadm_country ALTER COLUMN the_geom SET NOT NULL;
+SELECT AddGeometryColumn('eqged', 'gadm_country', 'simplegeom', 4326, 'MULTIPOLYGON', 2);
 
 -- GADM country attributes
 CREATE TABLE eqged.gadm_country_attribute (

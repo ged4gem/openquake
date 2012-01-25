@@ -89,6 +89,7 @@ COMMENT ON COLUMN eqged.gadm_country.name IS 'Country name in English';
 COMMENT ON COLUMN eqged.gadm_country.alias IS 'Alternate country name, often in local language';
 COMMENT ON COLUMN eqged.gadm_country.iso IS '3-letter International Organization for Standardization (ISO) code. Useful for joining with country-level attributes.';
 COMMENT ON COLUMN eqged.gadm_country.the_geom IS 'Polygon representing a country boundary. Note that some "countries" are actually regions or territories, such as Puerto Rico, which has it''s own polygon and ISO code despite being a U.S. Commonwealth. ';
+COMMENT ON COLUMN eqged.gadm_country.simplegeom IS 'Simplified version of the_geom for visualization purposes.'; 
 COMMENT ON COLUMN eqged.gadm_country.shape_perimeter IS 'Length of the polygon perimeter in km';
 COMMENT ON COLUMN eqged.gadm_country.shape_area IS 'Area of the polygon in square km';
 COMMENT ON COLUMN eqged.gadm_country.date IS 'Date of update for the country';
