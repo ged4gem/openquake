@@ -302,6 +302,70 @@ $$;
 COMMENT ON FUNCTION eqged.build_gadm_country() IS
 'Populate eqged.grid_point_country for a given GADM region, matching the grid points to the region geometry.';
 
+CREATE OR REPLACE FUNCTION eqged.build_gem_exposure(in_study_region_id numeric) RETURNS void
+LANGUAGE plpgsql AS
+$$
+BEGIN
+  -- clear existing results
+  DELETE FROM eqged.gem_exposure WHERE study_region_id=in_study_region_id;
+
+  -- update flat table eqged.gem_exposure
+  INSERT INTO eqged.gem_exposure 
+    (study_region_id, grid_point_id, grid_point_the_geom, grid_point_lat, 
+    grid_point_lon, gadm_country_name, gadm_country_iso, gadm_admin_1_name, 
+    gadm_admin1_engtype, gadm_admin_2_name, gadm_admin2_engtype, 
+    population_population_src_id, population_pop_value, population_pop_quality, 
+    grid_point_attribute_land_area, grid_point_attribute_is_urban, 
+    grid_point_attribute_urban_measure_quality, cresta_zone_zone_name, 
+    cresta_zon_subzone_name, ms_class_name_struct, ms_class_name_height, 
+    ms_class_name_occ, ms_class_name_age, ms_value, gem_material, 
+    gem_material_type, gem_material_property, gem_vertical_load_system, 
+    gem_ductility, gem_horizontal_load_system, gem_height_category, 
+    gem_shorthand_form, agg_build_infra_pop_ratio_day_pop_ratio, 
+    agg_build_infra_pop_ratio_night_pop_ratio, agg_build_infra_pop_ratio_transit_pop_ratio, 
+    agg_build_infra_pop_day_pop, agg_build_infra_pop_night_pop, agg_build_infra_pop_transit_pop, 
+    agg_build_infra_pop_num_buildings, agg_build_infra_pop_struct_area)
+  SELECT
+    in_study_region_id, ar.grid_point_id, g.the_geom grid_point_the_geom, g.lat grid_point_lat, g.lon grid_point_lon,
+    gc.name gadm_country_name, gc.iso gadm_country_iso, gc1.name gadm_admin_1_name, gc1.engtype gadm_admin1_engtype, gc2.name gadm_admin_2_name, gc2.engtype gadm_admin2_engtype, 
+    po.population_src_id population_population_src_id, po.pop_value population_pop_value, po.pop_quality population_pop_quality, 
+    ga.land_area grid_point_attribute_land_area, ga.is_urban grid_point_attribute_is_urban, ga.urban_measure_quality grid_point_attribute_urban_measure_quality,
+    cc1.zone_name cresta_zone_zone_name, cc2.zone_name cresta_zon_subzone_name, 
+    struct_ms_class ms_class_name_struct, height_ms_class ms_class_name_height, 
+    ar.occupancy ms_class_name_occ, '' ms_class_name_age, ai.compound_ms_value ms_value,
+    pg.gem_material, pg.gem_material_type, pg.gem_material_property, 
+    pg.gem_vertical_load_system, pg.gem_ductility, pg.gem_horizontal_load_system, pg.gem_height_category, pg.gem_shorthand_form,
+    ar.day_pop_ratio agg_build_infra_pop_ratio_day_pop_ratio, ar.night_pop_ratio agg_build_infra_pop_ratio_night_pop_ratio, ar.transit_pop_ratio agg_build_infra_pop_ratio_transit_pop_ratio,
+    ap.day_pop agg_build_infra_pop_day_pop, ap.night_pop agg_build_infra_pop_night_pop, ap.transit_pop agg_build_infra_pop_transit_pop,
+    ap.num_buildings agg_build_infra_pop_num_buildings, ap.struct_area agg_build_infra_pop_struct_area		
+  FROM 
+    (SELECT * FROM eqged.agg_build_infra_pop WHERE study_region_id=in_study_region_id) ap
+    INNER JOIN eqged.population po ON ap.population_id=po.id
+    INNER JOIN (SELECT * FROM eqged.agg_build_infra_pop_ratio WHERE study_region_id=in_study_region_id) ar ON ap.agg_build_infra_pop_ratio_id=ar.id
+    INNER JOIN eqged.grid_point g ON ar.grid_point_id=g.id
+    INNER JOIN (SELECT * FROM eqged.agg_build_infra WHERE study_region_id=in_study_region_id) ai ON ar.agg_build_infra_id = ai.id
+    INNER JOIN (SELECT
+      CASE WHEN t4_ms_type_id IS NOT NULL THEN t4_ms_id ELSE t3_ms_id END mapping_scheme_id, 
+      CASE WHEN t4_ms_type_id IS NOT NULL THEN t4_ms_name ELSE t3_ms_name END AS struct_ms_class,
+      CASE WHEN t4_ms_type_id IS NOT NULL THEN 
+        substring(t4_ms_name FROM char_length(t4_ms_name) FOR 1)
+      ELSE 'U' END AS height_ms_class
+      FROM eqged.temp_mapping_schemes) tm ON ai.mapping_scheme_id=tm.mapping_scheme_id
+    INNER JOIN eqged.grid_point_attribute ga ON ar.grid_point_id = ga.grid_point_id
+    LEFT JOIN eqged.cresta_zone cc1 ON ga.cresta_zone = cc1.id
+    LEFT JOIN eqged.cresta_zone cc2 ON ga.cresta_subzone = cc2.id				
+    INNER JOIN eqged.gadm_country gc ON ar.gadm_country_id=gc.id
+    LEFT JOIN eqged.grid_point_admin_1 gp1 ON ar.grid_point_id=gp1.grid_point_id
+    LEFT JOIN eqged.gadm_admin_1 gc1 ON gp1.gadm_admin_1_id=gc1.id
+    LEFT JOIN eqged.grid_point_admin_2 gp2 ON ar.grid_point_id=gp2.grid_point_id
+    LEFT JOIN eqged.gadm_admin_1 gc2 ON gp2.gadm_admin_2_id=gc2.id
+    LEFT JOIN eqged.pager_to_gem pg ON tm.struct_ms_class = pg.pager_str;
+END;
+$$;
+
+COMMENT ON FUNCTION eqged.build_gem_exposure() IS
+'Populate eqged.gem_exposure for a given study region, removing its previous version if necessary.';
+
 CREATE OR REPLACE FUNCTION eqged.fill_agg_build_infra(in_study_region_id numeric) RETURNS void
 LANGUAGE plpgsql AS
 $$
@@ -329,7 +393,6 @@ begin
 -- agg_build_infra_src: establish the links between population data and mapping schemes
 
 	-- clear existing results
-	delete from eqged.gem_exposure where study_region_id=in_study_region_id;
 	delete from eqged.agg_build_infra where study_region_id=in_study_region_id;
 	delete from eqged.agg_build_infra_pop where study_region_id=in_study_region_id;
 	delete from eqged.agg_build_infra_pop_ratio where study_region_id=in_study_region_id;
@@ -451,54 +514,6 @@ begin
 	from 
 		(select * from eqged.agg_build_infra_pop_ratio where study_region_id=in_study_region_id) t1
 		inner join eqged.population t2 on t1.grid_point_id=t2.grid_point_id;
-			
-	-- update flat table eqged.gem_exposure 
-	raise notice '    build flat table';
-	insert into eqged.gem_exposure 
-		(study_region_id, grid_point_id, grid_point_the_gem, grid_point_lat, 
-		grid_point_lon, gadm_country_name, gadm_country_iso, gadm_admin_1_name, 
-		gadm_admin1_engtype, gadm_admin_2_name, gadm_admin2_engtype, 
-		population_population_src_id, population_pop_value, population_pop_quality, 
-		grid_point_attribute_land_area, grid_point_attribute_is_urban, 
-		grid_point_attribute_urban_measure_quality, cresta_zone_zone_name, 
-		cresta_zon_subzone_name, ms_class_name_struct, ms_class_name_height, 
-		ms_class_name_occ, ms_class_name_age, ms_value, gem_material, 
-		gem_material_type, gem_material_property, gem_vertical_load_system, 
-		gem_ductility, gem_horizontal_load_system, gem_height_category, 
-		gem_shorthand_form, agg_build_infra_pop_ratio_day_pop_ratio, 
-		agg_build_infra_pop_ratio_night_pop_ratio, agg_build_infra_pop_ratio_transit_pop_ratio, 
-		agg_build_infra_pop_day_pop, agg_build_infra_pop_night_pop, agg_build_infra_pop_transit_pop, 
-		agg_build_infra_pop_num_buildings, agg_build_infra_pop_struct_area)
-	select  in_study_region_id, ar.grid_point_id, g.the_geom grid_point_the_gem, g.lat grid_point_lat, g.lon grid_point_lon,
-		gc.name gadm_country_name, gc.iso gadm_country_iso, gc1.name gadm_admin_1_name, gc1.engtype gadm_admin1_engtype, gc2.name gadm_admin_2_name, gc2.engtype gadm_admin2_engtype, 
-		po.population_src_id population_population_src_id, po.pop_value population_pop_value, po.pop_quality population_pop_quality, 
-		ga.land_area grid_point_attribute_land_area, ga.is_urban grid_point_attribute_is_urban, ga.urban_measure_quality grid_point_attribute_urban_measure_quality,
-		cc1.zone_name cresta_zone_zone_name, cc2.zone_name cresta_zon_subzone_name, 
-		struct_ms_class ms_class_name_struct, height_ms_class ms_class_name_height, 
-		ar.occupancy ms_class_name_occ, '' ms_class_name_age, ai.compound_ms_value ms_value,
-		pg.gem_material, pg.gem_material_type, pg.gem_material_property, 
-		pg.gem_vertical_load_system, pg.gem_ductility, pg.gem_horizontal_load_system, pg.gem_height_category, pg.gem_shorthand_form,
-		ar.day_pop_ratio agg_build_infra_pop_ratio_day_pop_ratio, ar.night_pop_ratio agg_build_infra_pop_ratio_night_pop_ratio, ar.transit_pop_ratio agg_build_infra_pop_ratio_transit_pop_ratio,
-		ap.day_pop agg_build_infra_pop_day_pop, ap.night_pop agg_build_infra_pop_night_pop, ap.transit_pop agg_build_infra_pop_transit_pop,
-		ap.num_buildings agg_build_infra_pop_num_buildings, ap.struct_area agg_build_infra_pop_struct_area		
-	from 
-		(select * from eqged.agg_build_infra_pop where study_region_id=in_study_region_id) ap
-		inner join eqged.population po on ap.population_id=po.id
-		inner join (select * from eqged.agg_build_infra_pop_ratio where study_region_id=in_study_region_id) ar on ap.agg_build_infra_pop_ratio_id=ar.id
-			inner join eqged.grid_point g on ar.grid_point_id=g.id
-		inner join (select * from eqged.agg_build_infra where study_region_id=in_study_region_id) ai on ar.agg_build_infra_id = ai.id
-			inner join 
-			(select case when t4_ms_type_id is not null then t4_ms_id else t3_ms_id end mapping_scheme_id, 
-				case when t4_ms_type_id is not null then t4_ms_name else t3_ms_name end as struct_ms_class,
-				case when t4_ms_type_id is not null then substring(t4_ms_name from char_length(t4_ms_name) for 1) else 'U' end as height_ms_class				
-			from eqged.temp_mapping_schemes) tm on ai.mapping_scheme_id=tm.mapping_scheme_id
-		inner join eqged.grid_point_attribute ga on ar.grid_point_id = ga.grid_point_id
-			left join eqged.cresta_zone cc1 on ga.cresta_zone = cc1.id
-			left join eqged.cresta_zone cc2 on ga.cresta_subzone = cc2.id				
-		inner join eqged.gadm_country gc on ar.gadm_country_id=gc.id
-			left join eqged.grid_point_admin_1 gp1 on ar.grid_point_id=gp1.grid_point_id left join eqged.gadm_admin_1 gc1 on gp1.gadm_admin_1_id=gc1.id
-			left join eqged.grid_point_admin_2 gp2 on ar.grid_point_id=gp2.grid_point_id left join eqged.gadm_admin_1 gc2 on gp2.gadm_admin_2_id=gc2.id
-		left join eqged.pager_to_gem pg on tm.struct_ms_class = pg.pager_str;
 
 	raise notice '    processing completed.';
 end;
