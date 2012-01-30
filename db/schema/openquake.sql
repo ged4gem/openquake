@@ -1187,27 +1187,6 @@ FOREIGN KEY (surface_id) REFERENCES eqcat.surface(id) ON DELETE RESTRICT;
 ALTER TABLE eqged.admin_3 ADD CONSTRAINT eqged_admin_3_gadm_admin_2_fk
 FOREIGN KEY (gadm_admin_2_id) REFERENCES eqged.gadm_admin_2(id);
 
-ALTER TABLE eqged.agg_build_infra ADD CONSTRAINT eqged_agg_build_infra_grid_point_fk
-FOREIGN KEY (grid_point_id) REFERENCES eqged.grid_point(id) ON UPDATE CASCADE ON DELETE CASCADE;
-
-ALTER TABLE eqged.agg_build_infra ADD CONSTRAINT eqged_agg_build_infra_agg_build_infra_src_fk
-FOREIGN KEY (agg_build_infra_src_id) REFERENCES eqged.agg_build_infra_src(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-ALTER TABLE eqged.agg_build_infra ADD CONSTRAINT eqged_agg_build_infra_mapping_scheme_class_fk
-FOREIGN KEY (ms_class_id) REFERENCES eqged.mapping_scheme_class(id) ON UPDATE CASCADE ON DELETE SET NULL;
-
-ALTER TABLE eqged.agg_build_infra_pop ADD CONSTRAINT eqged_agg_build_infra_pop_agg_build_infra_pop_ratio_fk
-FOREIGN KEY (agg_build_infra_pop_ratio_id) REFERENCES eqged.agg_build_infra_pop_ratio(id);
-
-ALTER TABLE eqged.agg_build_infra_pop ADD CONSTRAINT eqged_agg_build_infra_pop_population_fk
-FOREIGN KEY (population_id) REFERENCES eqged.population(id);
-
-ALTER TABLE eqged.agg_build_infra_pop_ratio ADD CONSTRAINT eqged_agg_build_infra_pop_ratio_agg_build_infra_src_fk
-FOREIGN KEY (agg_build_infra_src_id) REFERENCES eqged.agg_build_infra_src(id);
-
-ALTER TABLE eqged.agg_build_infra_pop_ratio ADD CONSTRAINT eqged_agg_build_infra_pop_ratio_grid_point_country_fk
-FOREIGN KEY (gadm_country_id, grid_point_id) REFERENCES eqged.grid_point_country(gadm_country_id, grid_point_id);
-
 ALTER TABLE eqged.agg_build_infra_src ADD CONSTRAINT eqged_agg_build_infra_src_mapping_scheme_src_fk
 FOREIGN KEY (mapping_scheme_src_id) REFERENCES eqged.mapping_scheme_src(id) ON UPDATE CASCADE ON DELETE SET NULL;
 

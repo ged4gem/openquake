@@ -328,17 +328,6 @@ begin
 -- 	sub-regions 
 -- agg_build_infra_src: establish the links between population data and mapping schemes
 
-	-- drop constraints to speed up processing
-	
-	alter table eqged.agg_build_infra_pop_ratio drop constraint eqged_agg_build_infra_pop_ratio_agg_build_infra_fk;
-	alter table eqged.agg_build_infra_pop_ratio drop constraint eqged_agg_build_infra_pop_ratio_grid_point_country_fk;
-
-	alter table eqged.agg_build_infra_pop drop CONSTRAINT eqged_agg_build_infra_pop_agg_build_infra_pop_ratio_fk;
-	alter table eqged.agg_build_infra_pop drop CONSTRAINT eqged_agg_build_infra_pop_population_fk; 
-
-	alter table eqged.agg_build_infra drop CONSTRAINT eqged_agg_build_infra_agg_build_infra_src_fk;
-	alter table eqged.agg_build_infra drop CONSTRAINT eqged_agg_build_infra_mapping_scheme_fk; 
-
 	-- clear existing results
 	delete from eqged.gem_exposure where study_region_id=in_study_region_id;
 	delete from eqged.agg_build_infra where study_region_id=in_study_region_id;
@@ -511,33 +500,7 @@ begin
 			left join eqged.grid_point_admin_2 gp2 on ar.grid_point_id=gp2.grid_point_id left join eqged.gadm_admin_1 gc2 on gp2.gadm_admin_2_id=gc2.id
 		left join eqged.pager_to_gem pg on tm.struct_ms_class = pg.pager_str;
 
--- limit 1
-	-- restore all constraints
 	raise notice '    processing completed.';
-	alter table eqged.agg_build_infra_pop_ratio add CONSTRAINT eqged_agg_build_infra_pop_ratio_agg_build_infra_fk FOREIGN KEY (agg_build_infra_id)
-	      REFERENCES eqged.agg_build_infra (id) MATCH SIMPLE
-	      ON UPDATE NO ACTION ON DELETE NO ACTION;
-	alter table eqged.agg_build_infra_pop_ratio add CONSTRAINT eqged_agg_build_infra_pop_ratio_grid_point_country_fk FOREIGN KEY (grid_point_id, gadm_country_id)
-	      REFERENCES eqged.grid_point_country (grid_point_id, gadm_country_id) MATCH SIMPLE
-	      ON UPDATE NO ACTION ON DELETE NO ACTION;
-
-	alter table eqged.agg_build_infra_pop add CONSTRAINT eqged_agg_build_infra_pop_agg_build_infra_pop_ratio_fk FOREIGN KEY (agg_build_infra_pop_ratio_id)
-	      REFERENCES eqged.agg_build_infra_pop_ratio (id) MATCH SIMPLE
-	      ON UPDATE NO ACTION ON DELETE NO ACTION;
-	alter table eqged.agg_build_infra_pop add CONSTRAINT eqged_agg_build_infra_pop_population_fk FOREIGN KEY (population_id)
-	      REFERENCES eqged.population (id) MATCH SIMPLE
-	      ON UPDATE NO ACTION ON DELETE NO ACTION;
-
-	alter table eqged.agg_build_infra add CONSTRAINT eqged_agg_build_infra_agg_build_infra_src_fk FOREIGN KEY (agg_build_infra_src_id)
-	      REFERENCES eqged.agg_build_infra_src (id) MATCH SIMPLE
-	      ON UPDATE CASCADE ON DELETE SET NULL;
-	alter table eqged.agg_build_infra add CONSTRAINT eqged_agg_build_infra_mapping_scheme_fk FOREIGN KEY (mapping_scheme_id)
-	      REFERENCES eqged.mapping_scheme (id) MATCH SIMPLE
-	      ON UPDATE NO ACTION ON DELETE NO ACTION;
-      
-	-- test case
-	-- select eqged.fill_agg_build_infra(98, True)
-
 end;
 $$;
 
