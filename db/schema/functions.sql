@@ -302,7 +302,7 @@ $$;
 COMMENT ON FUNCTION eqged.build_gadm_country() IS
 'Populate eqged.grid_point_country for a given GADM region, matching the grid points to the region geometry.';
 
-CREATE OR REPLACE FUNCTION eqged.fill_agg_build_infra(in_study_region_id numeric, in_use_full_country boolean) RETURNS void
+CREATE OR REPLACE FUNCTION eqged.fill_agg_build_infra(in_study_region_id numeric) RETURNS void
 LANGUAGE plpgsql AS
 $$
 declare
@@ -382,7 +382,7 @@ begin
 			case when t4_ms_type_id is not null then t4_ms_id else t3_ms_id end mapping_scheme_id, ms_value 
 		from eqged.temp_mapping_schemes where mapping_scheme_src_id=mapping_scheme_record.mapping_scheme_src_id;
 
-		IF (in_use_full_country) THEN
+		IF (mapping_scheme_record.gadm_country_id IS NOT NULL) THEN
 			-- if the mapping scheme applies to the entire country, then we can 
 			-- use a shortcut to skips the point-n-polygon operation to
 			-- retrieve all points within the area covered by the mapping scheme
