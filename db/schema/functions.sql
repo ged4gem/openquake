@@ -242,7 +242,7 @@ BEGIN
       FROM
         eqged.grid_point_country tt1
         INNER JOIN eqged.grid_point_attribute tt2 ON tt1.grid_point_id=tt2.grid_point_id
-      WHERE tt1.gadm_country_id = in_gadm_country_id AND tt2.is_urban = in_is_urban boolean
+      WHERE tt1.gadm_country_id = in_gadm_country_id AND tt2.is_urban = in_is_urban
     ) t1 
     CROSS JOIN
     -- attach agg_build_infra (mapping scheme)
