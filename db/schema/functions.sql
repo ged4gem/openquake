@@ -293,6 +293,97 @@ $$;
 COMMENT ON FUNCTION eqged.apply_mapping_scheme_country_pnp() IS
 'Apply mapping scheme to a given GADM country, assuming only part of the country uses the mapping scheme. Perform point-n-polygon to retrieve all points (very costly); currently, action is performed twice, probably need some optimization to store into temporary table to avoid repeating.';
 
+CREATE OR REPLACE FUNCTION eqged.build_agg_build_infra(in_study_region_id numeric) RETURNS void
+LANGUAGE plpgsql AS
+$$
+DECLARE
+  mapping_scheme_record RECORD;
+BEGIN	
+  -- population data tables
+  -- eqged.grid_points: id and geometry 
+  -- eqged.grid_point_attributes: urban condition flag,
+  -- eqged.grid_point_country: gadm_country_id
+  -- eqged.population/eqged.population_src: actual population for grid cell
+  -- eqged.pop_allocation: ratio of population for different conditions (urban, time of day, occupancy)
+  --
+  -- mapping scheme tables
+  -- eqged.mapping_scheme_src, eqged.mapping_scheme, eqged.mapping_scheme_types, eqged.mapping_scheme_classes:
+  -- 	contain entire mapping scheme tree
+  -- 	these tables are combined into eqged.temp_mapping_schemes, eqged.temp_mapping_schemes has the correct format 
+  -- 
+  -- link tables
+  -- study_regions: each study region contains multiple mapping schemes that can be applied to different
+  -- 	sub-regions 
+  -- agg_build_infra_src: establish the links between population data and mapping schemes
+
+  -- clear existing results
+  DELETE FROM eqged.agg_build_infra WHERE study_region_id=in_study_region_id;
+  DELETE FROM eqged.agg_build_infra_pop WHERE study_region_id=in_study_region_id;
+  DELETE FROM eqged.agg_build_infra_pop_ratio WHERE study_region_id=in_study_region_id;
+
+  -- select study regions and all associated mapping schemes
+  -- loop through each mapping scheme and apply to grids
+  FOR mapping_scheme_record IN
+    SELECT t1.id, mapping_scheme_src_id, gadm_country_id, the_geom, t2.is_urban
+    FROM eqged.agg_build_infra_src t1 INNER JOIN eqged.mapping_scheme_src t2 ON t1.mapping_scheme_src_id=t2.id 
+    WHERE study_region_id = in_study_region_id
+  LOOP
+    RAISE NOTICE 'process mapping scheme %, agg_build_infra_src_id %, is_urban %', 
+      mapping_scheme_record.mapping_scheme_src_id, mapping_scheme_record.id, mapping_scheme_record.is_urban;
+
+    -- insert into agg_build_infra
+    INSERT INTO eqged.agg_build_infra
+      (study_region_id, agg_build_infra_src_id, mapping_scheme_id, compound_ms_value)
+    SELECT 
+      in_study_region_id, mapping_scheme_record.id, 
+      CASE WHEN t4_ms_type_id IS NOT NULL THEN t4_ms_id ELSE t3_ms_id END mapping_scheme_id, ms_value 
+    FROM eqged.temp_mapping_schemes
+    WHERE mapping_scheme_src_id=mapping_scheme_record.mapping_scheme_src_id;
+
+    -- insert into agg_build_infra_pop_ratio
+    IF (mapping_scheme_record.gadm_country_id IS NOT NULL) THEN
+      -- if the mapping scheme applies to the entire country, then we can 
+      -- use a shortcut to skips the point-n-polygon operation to
+      -- retrieve all points within the area covered by the mapping scheme
+      RAISE NOTICE '    using shortcut';
+      PERFORM eqged.apply_mapping_scheme_country(
+        in_study_region_id,
+        mapping_scheme_record.gadm_country_id,
+        mapping_scheme_record.is_urban,
+        mapping_scheme_record.id);					
+    ELSE
+      -- only part of the country uses the mapping scheme
+      -- perform point-n-polygon to retrieve all points (very costly)
+      -- currently, action is performed twice, probably need some optimization
+      -- to store into temporary table to avoid repeating.
+      RAISE NOTICE '    using point polygon';		
+      PERFORM eqged.apply_mapping_scheme_country_pnp(
+        in_study_region_id,
+        mapping_scheme_record.gadm_country_id,
+        mapping_scheme_record.is_urban,
+        mapping_scheme_record.id,
+        mapping_scheme_record.the_geom);
+    END IF;
+  END LOOP;
+
+  RAISE NOTICE '    insert into agg_build_infra_pop';		
+		
+  -- insert into agg_build_infra_pop
+  INSERT INTO eqged.agg_build_infra_pop 
+    (study_region_id, agg_build_infra_pop_ratio_id, population_id,
+    day_pop, night_pop, transit_pop, num_buildings, struct_area)
+  SELECT in_study_region_id, t1.id, t2.id, 
+    t1.day_pop_ratio*t2.pop_value, t1.night_pop_ratio*t2.pop_value, t1.transit_pop_ratio*t2.pop_value,
+    0, 0
+  FROM
+    (SELECT * FROM eqged.agg_build_infra_pop_ratio WHERE study_region_id=in_study_region_id) t1
+    INNER JOIN eqged.population t2 ON t1.grid_point_id=t2.grid_point_id;
+END;
+$$;
+
+COMMENT ON FUNCTION eqged.build_agg_build_infra() IS
+'Builds exposure and populates eqged.agg_build_infra, eqged.agg_build_infra_pop and eqged.agg_build_infra_pop_ratio.';
+
 CREATE OR REPLACE FUNCTION eqged.build_gadm_admin_1(gadm_admin_1_id numeric) RETURNS void
 LANGUAGE plpgsql AS
 $$
@@ -431,121 +522,6 @@ $$;
 
 COMMENT ON FUNCTION eqged.build_gem_exposure() IS
 'Populate eqged.gem_exposure for a given study region, removing its previous version if necessary.';
-
-CREATE OR REPLACE FUNCTION eqged.fill_agg_build_infra(in_study_region_id numeric) RETURNS void
-LANGUAGE plpgsql AS
-$$
-declare
-	mapping_scheme_record RECORD;
-begin	
---
--- script for applying mapping scheme for creating GED level1 database
---
--- population data tables
--- eqged.grid_points: id and geometry 
--- eqged.grid_point_attributes: urban condition flag,
--- eqged.grid_point_country: gadm_country_id
--- eqged.population/eqged.population_src: actual population for grid cell
--- eqged.pop_allocation: ratio of population for different conditions (urban, time of day, occupancy)
---
--- mapping scheme tables
--- eqged.mapping_scheme_src, eqged.mapping_scheme, eqged.mapping_scheme_types, eqged.mapping_scheme_classes:
--- 	contain entire mapping scheme tree
--- 	these tables are combined into eqged.temp_mapping_schemes, eqged.temp_mapping_schemes has the correct format 
--- 
--- link tables
--- study_regions: each study region contains multiple mapping schemes that can be applied to different
--- 	sub-regions 
--- agg_build_infra_src: establish the links between population data and mapping schemes
-
-	-- clear existing results
-	delete from eqged.agg_build_infra where study_region_id=in_study_region_id;
-	delete from eqged.agg_build_infra_pop where study_region_id=in_study_region_id;
-	delete from eqged.agg_build_infra_pop_ratio where study_region_id=in_study_region_id;
-
-	-- create temporary table for storing data
-	-- after process is completed transfer data into 'eqged.agg_build_infra' table
-	drop table if exists agg_build_infra_temp;
-    	CREATE TEMPORARY TABLE agg_build_infra_temp
-	(
-		grid_point_id integer NOT NULL,
-		gadm_country_id integer NOT NULL,
-		grid_point_country_id integer, 	-- this field currently does not exist in eqged.grid_point_county, need to add
-		population_id integer NOT NULL,
-		agg_build_infra_src_id integer NOT NULL,
-
-		mapping_scheme_id integer not null,
-		ms_value float not null,
-
-		struct_ms_class character varying,
-		height_ms_class character varying,
-		occ_ms_class character varying,
-		age_ms_class character varying,
-		num_buildings double precision,
-		struct_area double precision,
-		day_pop_ratio double precision,
-		night_pop_ratio double precision,
-		transit_pop_ratio double precision,
-		day_pop double precision,
-		night_pop double precision,
-		transit_pop double precision
-	)
-	TABLESPACE eqged_ts;
-
-	-- select study regions and all associated mapping schemes
-	-- loop through each mapping scheme and apply to grids
-	for mapping_scheme_record in 
-		select t1.id, mapping_scheme_src_id, gadm_country_id, the_geom, t2.is_urban
-			from eqged.agg_build_infra_src t1 inner join eqged.mapping_scheme_src t2 on t1.mapping_scheme_src_id=t2.id 
-		where study_region_id = in_study_region_id
-		loop
-		
-		raise notice 'process mapping scheme %, agg_build_infra_src_id %, is_urban %', 
-			mapping_scheme_record.mapping_scheme_src_id, mapping_scheme_record.id, mapping_scheme_record.is_urban;
-
-
-		-- FINAL
-		insert into eqged.agg_build_infra (study_region_id, agg_build_infra_src_id, mapping_scheme_id, compound_ms_value) 
-		select 
-			in_study_region_id, mapping_scheme_record.id, 
-			case when t4_ms_type_id is not null then t4_ms_id else t3_ms_id end mapping_scheme_id, ms_value 
-		from eqged.temp_mapping_schemes where mapping_scheme_src_id=mapping_scheme_record.mapping_scheme_src_id;
-
-		IF (mapping_scheme_record.gadm_country_id IS NOT NULL) THEN
-			-- if the mapping scheme applies to the entire country, then we can 
-			-- use a shortcut to skips the point-n-polygon operation to
-			-- retrieve all points within the area covered by the mapping scheme
-			raise notice '    using shortcut';
-			PERFORM eqged.apply_mapping_scheme_country(in_study_region_id, mapping_scheme_record.gadm_country_id, mapping_scheme_record.is_urban, mapping_scheme_record.id);					
-		ELSE
-			-- only part of the country uses the mapping scheme
-			-- perform point-n-polygon to retrieve all points (very costly)
-			-- currently, action is performed twice, probably need some optimization
-			-- to store into temporary table to avoid repeating.
-			raise notice '    using point polygon';		
-			PERFORM eqged.apply_mapping_scheme_country_pnp(in_study_region_id, mapping_scheme_record.gadm_country_id, mapping_scheme_record.is_urban, mapping_scheme_record.id, mapping_scheme_record.the_geom);	
-		END IF;
-	end loop;
-
-	raise notice '    insert into agg_build_infra_pop';		
-			
-	-- insert into agg_build_infra_pop
-	insert into eqged.agg_build_infra_pop 
-		(study_region_id, agg_build_infra_pop_ratio_id, population_id,
-		day_pop, night_pop, transit_pop, num_buildings, struct_area)
-	select in_study_region_id, t1.id, t2.id, 
-		t1.day_pop_ratio*t2.pop_value, t1.night_pop_ratio*t2.pop_value, t1.transit_pop_ratio*t2.pop_value,
-		0, 0
-	from 
-		(select * from eqged.agg_build_infra_pop_ratio where study_region_id=in_study_region_id) t1
-		inner join eqged.population t2 on t1.grid_point_id=t2.grid_point_id;
-
-	raise notice '    processing completed.';
-end;
-$$;
-
-COMMENT ON FUNCTION eqged.fill_agg_build_infra() IS
-'Builds exposure and populates eqged.agg_build_infra* and eqged.gem_exposure.';
 
 CREATE OR REPLACE FUNCTION eqged.make_joined() RETURNS text
 LANGUAGE plpgsql AS
