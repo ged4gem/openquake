@@ -59,10 +59,10 @@ COMMENT ON TABLE eqged.admin_3 IS 'Borders layer the third administrative level.
 COMMENT ON COLUMN eqged.admin_3.id IS 'Unique identifier';
 COMMENT ON COLUMN eqged.admin_3.name IS 'Region name in English';
 COMMENT ON COLUMN eqged.admin_3.varname IS 'Alternate region name, often in local language';
-COMMENT ON COLUMN eqged.gadm_admin_1.the_geom IS 'Polygon representing a regional boundary.'; 
-COMMENT ON COLUMN eqged.gadm_admin_1.shape_perimeter IS 'Length of the polygon perimeter in km';
-COMMENT ON COLUMN eqged.gadm_admin_1.shape_area IS 'Area of the polygon in square km';
-COMMENT ON COLUMN eqged.gadm_admin_1.gadm_admin_2_id IS 'Parent second level GADM administrative region identifier'
+COMMENT ON COLUMN eqged.admin_3.the_geom IS 'Polygon representing a regional boundary.'; 
+COMMENT ON COLUMN eqged.admin_3.shape_perimeter IS 'Length of the polygon perimeter in km';
+COMMENT ON COLUMN eqged.admin_3.shape_area IS 'Area of the polygon in square km';
+COMMENT ON COLUMN eqged.admin_3.gadm_admin_2_id IS 'Parent second level GADM administrative region identifier'
 COMMENT ON COLUMN eqged.gadm_admin_1.date IS 'Date of update for the country';
 
 COMMENT ON TABLE eqged.agg_build_infra IS 'result of mapping scheme assignment for grid_point. each grid_point can have multiple records here';
@@ -172,12 +172,16 @@ COMMENT ON COLUMN eqged.gadm_country_attribute.replacement_cost IS 'replacement 
 COMMENT ON COLUMN eqged.gadm_country_attribute.num_buildings IS 'mean number of buildings';
 COMMENT ON COLUMN eqged.gadm_country_attribute.date IS 'Dataset date';
 
+COMMENT ON TABLE eqged.gadm_country_facts IS 'GADM country facts (flat table for visualization).';
+
 COMMENT ON TABLE eqged.gadm_country_population IS 'Population values aggregated by GADM country region. Can be rebuilt using function eqged.rebuild_gadm_country_population().';
 COMMENT ON COLUMN eqged.gadm_country_population.id IS 'Unique identifier';
 COMMENT ON COLUMN eqged.gadm_country_population.gadm_country_id IS 'GADM country identifier';
 COMMENT ON COLUMN eqged.gadm_country_population.population_src_id IS 'Population source identifier';
 COMMENT ON COLUMN eqged.gadm_country_population.pop_value IS 'Aggregate population value (total number of people) for the given GADM country';
 COMMENT ON COLUMN eqged.gadm_country_population.pop_count IS 'Number of populated grid cells in the given GADM country';
+
+COMMENT ON TABLE eqged.gem_exposure IS 'GEM exposure (flat table for visualization).';
 
 COMMENT ON TABLE eqged.grid_point IS 'Table to store the geometry of points representing 30 arc-second cells. Mapping schemes are applied to these cells to produce global or regional sets of data with modeled or measured exposure attributes for use in GEM software.';
 COMMENT ON COLUMN eqged.grid_point.id IS 'Unique identifier';

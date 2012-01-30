@@ -202,7 +202,7 @@ CREATE TABLE eqged.agg_build_infra_pop_ratio (
     night_pop_ratio eqged.proportion NOT NULL,
     transit_pop_ratio eqged.proportion NOT NULL,
     study_region_id integer,
-    occupancy character varying(10)
+    occupancy VARCHAR(10)
 ) TABLESPACE eqged_ts;
 
 -- aggregate building infrastructure source
@@ -296,6 +296,39 @@ CREATE TABLE eqged.gadm_country_attribute (
     date date
 ) TABLESPACE eqged_ts;
 
+-- GADM country facts (flat table for visualization)
+CREATE TABLE eqged.gadm_country_facts (
+  id serial PRIMARY KEY,
+  gadm_country_id integer NOT NULL,
+  gadm_country_name VARCHAR NOT NULL,
+  gadm_country_alias VARCHAR,
+  gadm_country_iso character(3),
+  gadm_country_shape_perimeter double precision,
+  gadm_country_shape_area double precision,
+  gadm_country_date date,
+  urban_rural_source VARCHAR,
+  people_dwelling double precision,
+  dwellings_building double precision,
+  building_area double precision,
+  replacement_cost double precision,
+  num_buildings double precision,
+  gadm_country_attribute_date date,
+  population_src_id integer,
+  population_src_source VARCHAR,
+  population_src_description VARCHAR,
+  population_src_date date,
+  population double precision,
+  populated_ratio double precision,
+  built_ratio double precision,
+  mapping_schemes VARCHAR,
+  gadm_country_the_geom geometry NOT NULL,
+  simplegeom geometry NOT NULL
+) TABLESPACE eqged_ts;
+SELECT AddGeometryColumn('eqged', 'gadm_country_facts', 'gadm_country_the_geom', 4326, 'MULTIPOLYGON', 2);
+ALTER TABLE eqged.gadm_country_facts ALTER COLUMN gadm_country_the_geom SET NOT NULL;
+SELECT AddGeometryColumn('eqged', 'gadm_country_facts', 'simplegeom', 4326, 'MULTIPOLYGON', 2);
+ALTER TABLE eqged.gadm_country_facts ALTER COLUMN simplegeom SET NOT NULL;
+
 -- GADM country aggregate population values
 CREATE TABLE eqged.gadm_country_population (
     id serial PRIMARY KEY,
@@ -304,6 +337,52 @@ CREATE TABLE eqged.gadm_country_population (
     pop_value double precision,
     pop_count integer
 ) TABLESPACE eqged_ts;
+
+-- GEM exposure (flat table for visualization)
+CREATE TABLE eqged.gem_exposure (
+  id bigserial PRIMARY KEY,
+  study_region_id integer,
+  grid_point_id integer,
+  grid_point_lat double precision,
+  grid_point_lon double precision,
+  gadm_country_name VARCHAR,
+  gadm_country_iso character(3),
+  gadm_admin_1_name VARCHAR,
+  gadm_admin1_engtype VARCHAR,
+  gadm_admin_2_name VARCHAR,
+  gadm_admin2_engtype VARCHAR,
+  population_population_src_id integer,
+  population_pop_value double precision,
+  population_pop_quality double precision,
+  grid_point_attribute_land_area double precision,
+  grid_point_attribute_is_urban boolean,
+  grid_point_attribute_urban_measure_quality double precision,
+  cresta_zone_zone_name VARCHAR,
+  cresta_zon_subzone_name VARCHAR,
+  ms_class_name_struct VARCHAR,
+  ms_class_name_height VARCHAR,
+  ms_class_name_occ VARCHAR,
+  ms_class_name_age VARCHAR,
+  ms_value double precision,
+  gem_material VARCHAR(255),
+  gem_material_type VARCHAR(255),
+  gem_material_property VARCHAR(255),
+  gem_vertical_load_system VARCHAR(255),
+  gem_ductility VARCHAR(255),
+  gem_horizontal_load_system VARCHAR(255),
+  gem_height_category VARCHAR(255),
+  gem_shorthand_form VARCHAR(255),
+  agg_build_infra_pop_ratio_day_pop_ratio double precision,
+  agg_build_infra_pop_ratio_night_pop_ratio double precision,
+  agg_build_infra_pop_ratio_transit_pop_ratio double precision,
+  agg_build_infra_pop_day_pop double precision,
+  agg_build_infra_pop_night_pop double precision,
+  agg_build_infra_pop_transit_pop double precision,
+  agg_build_infra_pop_num_buildings double precision,
+  agg_build_infra_pop_struct_area double precision
+) TABLESPACE eqged_ts;
+SELECT AddGeometryColumn('eqged', 'gem_exposure', 'grid_point_the_geom', 4326, 'POINT', 2);
+ALTER TABLE eqged.gem_exposure ALTER COLUMN the_geom SET NOT NULL;
 
 -- Global grid
 CREATE TABLE eqged.grid_point (
@@ -398,18 +477,18 @@ CREATE TABLE eqged.mapping_scheme_type (
 -- PAGER-GEM taxonomy conversion table
 CREATE TABLE pager_to_gem (
     id integer,
-    gem_id character varying(255),
-    gem_building_typology character varying(255),
-    pager_str character varying(255),
+    gem_id VARCHAR(255),
+    gem_building_typology VARCHAR(255),
+    pager_str VARCHAR(255),
     pager_description text,
-    gem_material character varying(255),
-    gem_material_type character varying(255),
-    gem_material_property character varying(255),
-    gem_vertical_load_system character varying(255),
-    gem_ductility character varying(255),
-    gem_horizontal_load_system character varying(255),
-    gem_height_category character varying(255),
-    gem_shorthand_form character varying(255)
+    gem_material VARCHAR(255),
+    gem_material_type VARCHAR(255),
+    gem_material_property VARCHAR(255),
+    gem_vertical_load_system VARCHAR(255),
+    gem_ductility VARCHAR(255),
+    gem_horizontal_load_system VARCHAR(255),
+    gem_height_category VARCHAR(255),
+    gem_shorthand_form VARCHAR(255)
 ) TABLESPACE eqged_ts;
 
 -- population allocation
