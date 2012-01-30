@@ -260,6 +260,39 @@ $$;
 COMMENT ON FUNCTION eqged.apply_mapping_scheme_country() IS
 'Apply mapping scheme to a given GADM country, assuming it applies to the entire country.';
 
+CREATE OR REPLACE FUNCTION eqged.apply_mapping_scheme_country_pnp(in_study_region_id numeric, in_gadm_country_id numeric, in_is_urban boolean, in_agg_build_infra_src_id numeric, in_the_geom geometry) RETURNS void
+LANGUAGE plpgsql AS
+$$
+BEGIN
+  INSERT INTO eqged.agg_build_infra_pop_ratio(
+    study_region_id, gadm_country_id, grid_point_id, agg_build_infra_id, 
+    occupancy, day_pop_ratio, night_pop_ratio, transit_pop_ratio)
+  SELECT
+    in_study_region_id, t1.gadm_country_id, t1.grid_point_id, t2.id, occupancy,
+    t2.compound_ms_value*day_pop_ratio, t2.compound_ms_value*night_pop_ratio, t2.compound_ms_value*transit_pop_ratio
+  FROM
+    (SELECT tt1.grid_point_id, tt1.gadm_country_id
+      FROM
+        eqged.grid_point_country tt1
+        INNER JOIN eqged.grid_point_attribute tt2 ON tt1.grid_point_id=tt2.grid_point_id
+      WHERE tt2.is_urban = in_is_urban AND st_contains(in_the_geom, the_geom)
+    ) t1
+    CROSS JOIN
+    -- attach agg_build_infra (mapping scheme)
+    (SELECT id, study_region_id, agg_build_infra_src_id, compound_ms_value
+      FROM eqged.agg_build_infra
+      WHERE study_region_id = in_study_region_id AND agg_build_infra_src_id = in_agg_build_infra_src_id) t2
+    INNER JOIN
+    -- apply population allocation for country
+    (SELECT * FROM eqged.pop_allocation 
+      WHERE is_urban AND gadm_country_id=in_gadm_country_id AND occupancy <> 'Outdoor') t3
+    ON t1.gadm_country_id=t3.gadm_country_id;
+END;
+$$;
+
+COMMENT ON FUNCTION eqged.apply_mapping_scheme_country_pnp() IS
+'Apply mapping scheme to a given GADM country, assuming only part of the country uses the mapping scheme. Perform point-n-polygon to retrieve all points (very costly); currently, action is performed twice, probably need some optimization to store into temporary table to avoid repeating.';
+
 CREATE OR REPLACE FUNCTION eqged.build_gadm_admin_1(gadm_admin_1_id numeric) RETURNS void
 LANGUAGE plpgsql AS
 $$
@@ -490,28 +523,7 @@ begin
 			-- currently, action is performed twice, probably need some optimization
 			-- to store into temporary table to avoid repeating.
 			raise notice '    using point polygon';		
-			
-			insert into eqged.agg_build_infra_pop_ratio 
-				(study_region_id, gadm_country_id, grid_point_id, agg_build_infra_id, 
-				 occupancy, day_pop_ratio, night_pop_ratio, transit_pop_ratio)
-			select  in_study_region_id, t1.gadm_country_id, t1.grid_point_id, t2.id, occupancy,
-				t2.compound_ms_value*day_pop_ratio, t2.compound_ms_value*night_pop_ratio, t2.compound_ms_value*transit_pop_ratio
-			from 
-				( 
-				select tt1.grid_point_id, tt1.gadm_country_id
-				from eqged.grid_point_country tt1
-					    inner join eqged.grid_point_attribute tt2 on tt1.grid_point_id=tt2.grid_point_id
-					    where tt2.is_urban = mapping_scheme_record.is_urban
-						and st_contains(mapping_scheme_record.the_geom, the_geom)
-				) t1 
-				cross join 
-				-- attach agg_build_infra (mapping scheme)
-				(select id, study_region_id, agg_build_infra_src_id, compound_ms_value from  eqged.agg_build_infra where
-					study_region_id = in_study_region_id and agg_build_infra_src_id = mapping_scheme_record.id )t2
-				-- apply population allocation for country
-				inner join (select * from eqged.pop_allocation 
-							where is_urban and gadm_country_id=mapping_scheme_record.gadm_country_id
-							and occupancy <> 'Outdoor') t3 on t1.gadm_country_id=t3.gadm_country_id;		
+			PERFORM eqged.apply_mapping_scheme_country_pnp(in_study_region_id, mapping_scheme_record.gadm_country_id, mapping_scheme_record.is_urban, mapping_scheme_record.id, mapping_scheme_record.the_geom);	
 		END IF;
 	end loop;
 
