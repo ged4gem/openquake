@@ -523,6 +523,39 @@ $$;
 COMMENT ON FUNCTION eqged.build_gem_exposure(numeric) IS
 'Populate eqged.gem_exposure for a given study region, removing its previous version if necessary.';
 
+CREATE OR REPLACE FUNCTION eqged.get_serialized_ms(in_gadm_country_id numeric) RETURNS text
+LANGUAGE plpgsql AS
+$$
+DECLARE
+  outstring text;
+  ms_row record;
+  pop_row record;
+BEGIN
+  outstring := '';
+  FOR ms_row IN
+    SELECT b.* FROM
+      (SELECT t1.id, study_region_id, mapping_scheme_src_id, gadm_country_id, t2.is_urban
+      FROM eqged.agg_build_infra_src t1 INNER JOIN eqged.mapping_scheme_src t2 ON t1.mapping_scheme_src_id=t2.id 
+      WHERE gadm_country_id = in_gadm_country_id) a
+    INNER JOIN eqged.temp_mapping_schemes b USING (mapping_scheme_src_id)
+  LOOP
+    outstring := row(ms_row)::text || '|' || outstring;
+  END LOOP;
+  outstring := outstring || '§';
+  FOR pop_row IN
+    select
+      id, is_urban, day_pop_ratio, night_pop_ratio, transit_pop_ratio, occupancy
+    from eqged.pop_allocation where gadm_country_id=in_gadm_country_id
+  LOOP
+    outstring := outstring || '|' || row(pop_row)::text;
+  END LOOP;
+  RETURN outstring;
+END;
+$$;
+
+COMMENT ON FUNCTION eqged.get_serialized_ms(numeric) IS
+'Return a textual representation of all the mapping schemes used by a given country, including the population allocation information.';
+
 CREATE OR REPLACE FUNCTION eqged.make_joined() RETURNS text
 LANGUAGE plpgsql AS
 $$
@@ -644,7 +677,7 @@ BEGIN
       'GRUMP', NULL, NULL, NULL, NULL, NULL, NULL,
       b.id, b.source, b.description, b.date,
       c.pop_value::integer, (c.pop_count::double precision / d.num_cells::double precision), (c.pop_count::double precision / d.num_cells::double precision),
-      NULL, a.the_geom, 
+      eqged.get_serialized_ms(a.id), a.the_geom,
       CASE WHEN a.simplegeom IS NULL THEN
         transform(simplify(transform(a.the_geom, 2249), 500),4326)
       ELSE
