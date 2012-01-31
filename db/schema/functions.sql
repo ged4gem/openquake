@@ -626,6 +626,42 @@ $$;
 COMMENT ON FUNCTION eqged.make_ms_query() IS
 'Generate the query string to select a table with the flattened mapping scheme structure. Internal function used by eqged.make_joined().';
 
+CREATE OR REPLACE FUNCTION eqged.rebuild_gadm_country_facts() RETURNS void
+LANGUAGE plpgsql AS
+$$
+BEGIN
+  TRUNCATE TABLE eqged.gadm_country_facts;
+  ALTER SEQUENCE eqged.gadm_country_facts_id_seq RESTART WITH 1;
+
+  INSERT INTO eqged.gadm_country_facts(
+    gadm_country_id, gadm_country_name, gadm_country_alias, gadm_country_iso, gadm_country_shape_perimeter, gadm_country_shape_area, gadm_country_date,
+    urban_rural_source, people_dwelling, dwellings_building, building_area, replacement_cost, num_buildings, gadm_country_attribute_date,
+    population_src_id, population_src_source, population_src_description, population_src_date,
+    population, populated_ratio, built_ratio, 
+    mapping_schemes, gadm_country_the_geom, simplegeom)
+    SELECT
+      a.id, a.name, a.alias, a.iso, a.shape_perimeter, a.shape_area, a.date,
+      'GRUMP', NULL, NULL, NULL, NULL, NULL, NULL,
+      b.id, b.source, b.description, b.date,
+      c.pop_value::integer, (c.pop_count::double precision / d.num_cells::double precision), (c.pop_count::double precision / d.num_cells::double precision),
+      NULL, a.the_geom, 
+      CASE WHEN a.simplegeom IS NULL THEN
+        transform(simplify(transform(a.the_geom, 2249), 500),4326)
+      ELSE
+        a.simplegeom
+      END
+    FROM
+      eqged.gadm_country a,
+      eqged.population_src b,
+      eqged.gadm_country_population c,
+      (SELECT gadm_country_id, count(grid_point_id) num_cells FROM eqged.grid_point_country GROUP BY gadm_country_id) d
+    WHERE a.id = c.gadm_country_id AND b.id = c.population_src_id AND d.gadm_country_id = a.id;
+END;
+$$;
+
+COMMENT ON FUNCTION eqged.rebuild_gadm_country_facts() IS
+'Truncates and rebuilds the contents of eqged.gadm_country_facts, for all GADM countries with aggregate population information.';
+
 CREATE OR REPLACE FUNCTION eqged.rebuild_gadm_country_population() RETURNS void
 LANGUAGE plpgsql AS
 $$
