@@ -688,13 +688,14 @@ BEGIN
   FOR study_region_record  IN
     SELECT id FROM eqged.study_regions
   LOOP
-    PERFORM eqged.fill_agg_build_infra(study_region_record.id);
+    PERFORM eqged.build_agg_build_infra(study_region_record.id);
+    PERFORM eqged.gem_exposure(study_region_record.id);
   END LOOP;
 END;
 $$;
 
 COMMENT ON FUNCTION eqged.rebuild_ged() IS
-'Rebuild exposure for all study regions.'
+'Rebuild exposure for all study regions.';
 
 CREATE OR REPLACE FUNCTION eqged.rebuild_grid_point_admin_1() RETURNS void
 LANGUAGE plpgsql AS
