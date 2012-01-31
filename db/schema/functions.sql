@@ -257,7 +257,7 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION eqged.apply_mapping_scheme_country() IS
+COMMENT ON FUNCTION eqged.apply_mapping_scheme_country(numeric, numeric, boolean, numeric) IS
 'Apply mapping scheme to a given GADM country, assuming it applies to the entire country.';
 
 CREATE OR REPLACE FUNCTION eqged.apply_mapping_scheme_country_pnp(in_study_region_id numeric, in_gadm_country_id numeric, in_is_urban boolean, in_agg_build_infra_src_id numeric, in_the_geom geometry) RETURNS void
@@ -290,7 +290,7 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION eqged.apply_mapping_scheme_country_pnp() IS
+COMMENT ON FUNCTION eqged.apply_mapping_scheme_country_pnp(numeric, numeric, boolean, numeric, geometry) IS
 'Apply mapping scheme to a given GADM country, assuming only part of the country uses the mapping scheme. Perform point-n-polygon to retrieve all points (very costly); currently, action is performed twice, probably need some optimization to store into temporary table to avoid repeating.';
 
 CREATE OR REPLACE FUNCTION eqged.build_agg_build_infra(in_study_region_id numeric) RETURNS void
@@ -381,7 +381,7 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION eqged.build_agg_build_infra() IS
+COMMENT ON FUNCTION eqged.build_agg_build_infra(numeric) IS
 'Builds exposure and populates eqged.agg_build_infra, eqged.agg_build_infra_pop and eqged.agg_build_infra_pop_ratio.';
 
 CREATE OR REPLACE FUNCTION eqged.build_gadm_admin_1(gadm_admin_1_id numeric) RETURNS void
@@ -406,7 +406,7 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION eqged.build_gadm_admin_1() IS
+COMMENT ON FUNCTION eqged.build_gadm_admin_1(numeric) IS
 'Populate eqged.grid_point_admin_1 for a given GADM region, matching the grid points to the region geometry.';
 
 CREATE OR REPLACE FUNCTION eqged.build_gadm_admin_2(gadm_admin_2_id numeric) RETURNS void
@@ -431,7 +431,7 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION eqged.build_gadm_admin_2() IS
+COMMENT ON FUNCTION eqged.build_gadm_admin_2(numeric) IS
 'Populate eqged.grid_point_admin_2 for a given GADM region, matching the grid points to the region geometry.';
 
 CREATE OR REPLACE FUNCTION eqged.build_gadm_country(gadm_country_id numeric) RETURNS void
@@ -456,7 +456,7 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION eqged.build_gadm_country() IS
+COMMENT ON FUNCTION eqged.build_gadm_country(numeric) IS
 'Populate eqged.grid_point_country for a given GADM region, matching the grid points to the region geometry.';
 
 CREATE OR REPLACE FUNCTION eqged.build_gem_exposure(in_study_region_id numeric) RETURNS void
@@ -520,7 +520,7 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION eqged.build_gem_exposure() IS
+COMMENT ON FUNCTION eqged.build_gem_exposure(numeric) IS
 'Populate eqged.gem_exposure for a given study region, removing its previous version if necessary.';
 
 CREATE OR REPLACE FUNCTION eqged.make_joined() RETURNS text
