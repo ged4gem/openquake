@@ -656,7 +656,7 @@ BEGIN
 END;
 $$;
 
-COMMENT ON FUNCTION eqged.make_ms_query() IS
+COMMENT ON FUNCTION eqged.make_ms_query(boolean) IS
 'Generate the query string to select a table with the flattened mapping scheme structure. Internal function used by eqged.make_joined().';
 
 CREATE OR REPLACE FUNCTION eqged.rebuild_gadm_country_facts() RETURNS void
