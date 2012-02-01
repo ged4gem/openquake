@@ -316,17 +316,17 @@ CREATE TABLE eqged.gadm_country_attribute (
 
 -- GADM country facts (flat table for visualization)
 CREATE TABLE eqged.gadm_country_facts (
-  id serial PRIMARY KEY,
-  gadm_country_id integer NOT NULL,
-  gadm_country_name VARCHAR NOT NULL,
-  gadm_country_alias VARCHAR,
-  gadm_country_iso character(3),
-  gadm_country_shape_perimeter double precision,
-  gadm_country_shape_area double precision,
-  gadm_country_date date,
-  urban_rural_source VARCHAR,
-  people_dwelling double precision,
-  people_dwelling_source VARCHAR,
+    id serial PRIMARY KEY,
+    gadm_country_id integer NOT NULL,
+    gadm_country_name VARCHAR NOT NULL,
+    gadm_country_alias VARCHAR,
+    gadm_country_iso character(3),
+    gadm_country_shape_perimeter double precision,
+    gadm_country_shape_area double precision,
+    gadm_country_date date,
+    urban_rural_source VARCHAR,
+    people_dwelling double precision,
+    people_dwelling_source VARCHAR,
     people_dwelling_date date,
     dwellings_building double precision,
     dwellings_building_source VARCHAR,
@@ -349,16 +349,16 @@ CREATE TABLE eqged.gadm_country_facts (
     gdp double precision,
     gdp_source VARCHAR,
     gdp_date date
-  population_src_id integer,
-  population_src_source VARCHAR,
-  population_src_description VARCHAR,
-  population_src_date date,
-  population double precision,
-  populated_ratio double precision,
-  built_ratio double precision,
-  mapping_schemes VARCHAR,
-  gadm_country_the_geom geometry NOT NULL,
-  simplegeom geometry NOT NULL
+    population_src_id integer,
+    population_src_source VARCHAR,
+    population_src_description VARCHAR,
+    population_src_date date,
+    population double precision,
+    populated_ratio double precision,
+    built_ratio double precision,
+    mapping_schemes VARCHAR,
+    gadm_country_the_geom geometry NOT NULL,
+    simplegeom geometry NOT NULL
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'gadm_country_facts', 'gadm_country_the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.gadm_country_facts ALTER COLUMN gadm_country_the_geom SET NOT NULL;
