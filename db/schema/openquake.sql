@@ -289,11 +289,29 @@ CREATE TABLE eqged.gadm_country_attribute (
     id integer PRIMARY KEY,
     gadm_country_id integer,
     people_dwelling double precision,
-    dwellings_building double precision DEFAULT 1,
+    people_dwelling_source VARCHAR,
+    people_dwelling_date date,
+    dwellings_building double precision,
+    dwellings_building_source VARCHAR,
+    dwellings_building_date date,
+    people_building double precision,
+    people_building_source VARCHAR,
+    people_building_date date,
     building_area double precision,
+    building_area_source VARCHAR,
+    building_area_date date,
     replacement_cost double precision,
+    replacement_cost_source VARCHAR,
+    replacement_cost_date date,
     num_buildings double precision,
-    date date
+    num_buildings_source VARCHAR,
+    num_buildings_date date,
+    labour_cost double precision,
+    labour_cost_source VARCHAR,
+    labour_cost_date date
+    gdp double precision,
+    gdp_source VARCHAR,
+    gdp_date date
 ) TABLESPACE eqged_ts;
 
 -- GADM country facts (flat table for visualization)

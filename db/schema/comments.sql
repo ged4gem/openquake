@@ -166,11 +166,29 @@ COMMENT ON TABLE eqged.gadm_country_attribute IS 'Extra attributes for GADM coun
 COMMENT ON COLUMN eqged.gadm_country_attribute.id IS 'Unique identifier';
 COMMENT ON COLUMN eqged.gadm_country_attribute.gadm_country_id IS 'GADM country identifier';
 COMMENT ON COLUMN eqged.gadm_country_attribute.people_dwelling IS 'mean number of people per dwelling';
+COMMENT ON COLUMN eqged.gadm_country_attribute.people_dwelling_source IS 'Source used for the people_dwelling data';
+COMMENT ON COLUMN eqged.gadm_country_attribute.people_dwelling_date IS 'Date of the people_dwelling data';
 COMMENT ON COLUMN eqged.gadm_country_attribute.dwellings_building IS 'mean number of dwellings per building';
+COMMENT ON COLUMN eqged.gadm_country_attribute.dwellings_building_source IS 'Source used for the dwellings_building data';
+COMMENT ON COLUMN eqged.gadm_country_attribute.dwellings_building_date IS 'Date of the dwellings_building data';
+COMMENT ON COLUMN eqged.gadm_country_attribute.people_building IS 'mean number of people per building';
+COMMENT ON COLUMN eqged.gadm_country_attribute.people_building_source IS 'Source used for the people_building data';
+COMMENT ON COLUMN eqged.gadm_country_attribute.people_building_date IS 'Date of the people_building data';
 COMMENT ON COLUMN eqged.gadm_country_attribute.building_area IS 'mean building area';
+COMMENT ON COLUMN eqged.gadm_country_attribute.building_area_source IS 'Source used for the building_area data';
+COMMENT ON COLUMN eqged.gadm_country_attribute.building_area_date IS 'Date of the building_area data';
 COMMENT ON COLUMN eqged.gadm_country_attribute.replacement_cost IS 'replacement cost per m^2';
+COMMENT ON COLUMN eqged.gadm_country_attribute.replacement_cost_source IS 'Source used for the replacement_cost data';
+COMMENT ON COLUMN eqged.gadm_country_attribute.replacement_cost_date IS 'Date of the replacement_cost data';
 COMMENT ON COLUMN eqged.gadm_country_attribute.num_buildings IS 'mean number of buildings';
-COMMENT ON COLUMN eqged.gadm_country_attribute.date IS 'Dataset date';
+COMMENT ON COLUMN eqged.gadm_country_attribute.num_buildings_source IS 'Source used for the num_buildings data';
+COMMENT ON COLUMN eqged.gadm_country_attribute.num_buildings_date IS 'Date of the num_buildings data';
+COMMENT ON COLUMN eqged.gadm_country_attribute.labour_cost IS '???';
+COMMENT ON COLUMN eqged.gadm_country_attribute.labour_cost_source IS 'Source used for the labour_cost data';
+COMMENT ON COLUMN eqged.gadm_country_attribute.labour_cost_date IS 'Date of the labour_cost data';
+COMMENT ON COLUMN eqged.gadm_country_attribute.gdp IS 'Gross domestic product of the country';
+COMMENT ON COLUMN eqged.gadm_country_attribute.gdp_source IS 'Source used for the gdp data';
+COMMENT ON COLUMN eqged.gadm_country_attribute.gdp_date IS 'Date of the gdp data';
 
 COMMENT ON TABLE eqged.gadm_country_facts IS 'GADM country facts (flat table for visualization).';
 
