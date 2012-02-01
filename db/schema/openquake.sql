@@ -282,7 +282,7 @@ CREATE TABLE eqged.gadm_country (
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'gadm_country', 'the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.gadm_country ALTER COLUMN the_geom SET NOT NULL;
-SELECT AddGeometryColumn('eqged', 'gadm_country', 'simplegeom', 4326, 'MULTIPOLYGON', 2);
+SELECT AddGeometryColumn('eqged', 'gadm_country', 'simple_geom', 4326, 'MULTIPOLYGON', 2);
 
 -- GADM country attributes
 CREATE TABLE eqged.gadm_country_attribute (
@@ -356,13 +356,11 @@ CREATE TABLE eqged.gadm_country_facts (
     population double precision,
     populated_ratio double precision,
     built_ratio double precision,
-    mapping_schemes VARCHAR,
-    gadm_country_the_geom geometry NOT NULL,
-    simplegeom geometry NOT NULL
+    mapping_schemes VARCHAR
 ) TABLESPACE eqged_ts;
 SELECT AddGeometryColumn('eqged', 'gadm_country_facts', 'gadm_country_the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.gadm_country_facts ALTER COLUMN gadm_country_the_geom SET NOT NULL;
-SELECT AddGeometryColumn('eqged', 'gadm_country_facts', 'simplegeom', 4326, 'MULTIPOLYGON', 2);
+SELECT AddGeometryColumn('eqged', 'gadm_country_facts', 'simple_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.gadm_country_facts ALTER COLUMN simplegeom SET NOT NULL;
 
 -- GADM country aggregate population values

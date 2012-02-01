@@ -37,7 +37,7 @@ CREATE INDEX eqged_grid_point_the_geom_idx ON eqged.grid_point USING gist(the_ge
 CREATE INDEX eqged_gadm_admin_1_the_geom_idx ON eqged.gadm_admin_1 USING gist(the_geom) TABLESPACE eqged_ts;
 CREATE INDEX eqged_gadm_admin_2_the_geom_idx ON eqged.gadm_admin_2 USING gist(the_geom) TABLESPACE eqged_ts;
 CREATE INDEX eqged_gadm_country_the_geom_idx ON eqged.gadm_country USING gist(the_geom) TABLESPACE eqged_ts;
-CREATE INDEX eqged_gadm_country_simplegeom_idx ON eqged.gadm_country USING gist(simplegeom) TABLESPACE eqged_ts;
+CREATE INDEX eqged_gadm_country_simple_geom_idx ON eqged.gadm_country USING gist(simple_geom) TABLESPACE eqged_ts;
 
 -- eqged.grid_point latlon index
 CREATE INDEX eqged_grid_point_lat_lon ON eqged.grid_point USING btree(lat,lon)TABLESPACE eqged_ts;

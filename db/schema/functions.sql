@@ -671,17 +671,17 @@ BEGIN
     urban_rural_source, people_dwelling, dwellings_building, building_area, replacement_cost, num_buildings, gadm_country_attribute_date,
     population_src_id, population_src_source, population_src_description, population_src_date,
     population, populated_ratio, built_ratio, 
-    mapping_schemes, gadm_country_the_geom, simplegeom)
+    mapping_schemes, gadm_country_the_geom, simple_geom)
     SELECT
       a.id, a.name, a.alias, a.iso, a.shape_perimeter, a.shape_area, a.date,
       'GRUMP', NULL, NULL, NULL, NULL, NULL, NULL,
       b.id, b.source, b.description, b.date,
       c.pop_value::integer, (c.pop_count::double precision / d.num_cells::double precision), (c.pop_count::double precision / d.num_cells::double precision),
       eqged.get_serialized_ms(a.id), a.the_geom,
-      CASE WHEN a.simplegeom IS NULL THEN
+      CASE WHEN a.simple_geom IS NULL THEN
         transform(simplify(transform(a.the_geom, 2249), 500),4326)
       ELSE
-        a.simplegeom
+        a.simple_geom
       END
     FROM
       eqged.gadm_country a,
