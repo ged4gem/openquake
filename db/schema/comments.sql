@@ -183,7 +183,7 @@ COMMENT ON COLUMN eqged.gadm_country_attribute.replacement_cost_date IS 'Date of
 COMMENT ON COLUMN eqged.gadm_country_attribute.num_buildings IS 'mean number of buildings';
 COMMENT ON COLUMN eqged.gadm_country_attribute.num_buildings_source IS 'Source used for the num_buildings data';
 COMMENT ON COLUMN eqged.gadm_country_attribute.num_buildings_date IS 'Date of the num_buildings data';
-COMMENT ON COLUMN eqged.gadm_country_attribute.labour_cost IS '???';
+COMMENT ON COLUMN eqged.gadm_country_attribute.labour_cost IS 'mean hourly compensation for labour';
 COMMENT ON COLUMN eqged.gadm_country_attribute.labour_cost_source IS 'Source used for the labour_cost data';
 COMMENT ON COLUMN eqged.gadm_country_attribute.labour_cost_date IS 'Date of the labour_cost data';
 COMMENT ON COLUMN eqged.gadm_country_attribute.gdp IS 'Gross domestic product of the country';
