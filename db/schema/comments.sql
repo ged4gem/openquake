@@ -277,12 +277,13 @@ COMMENT ON COLUMN eqged.pager_to_gem.gemid IS 'GEM ID';
 COMMENT ON COLUMN eqged.pager_to_gem.gem_building_typology IS 'GEM building typology description';
 COMMENT ON COLUMN eqged.pager_to_gem.pager_str IS 'PAGER STR class';
 COMMENT ON COLUMN eqged.pager_to_gem.pager_description IS 'PAGER STR class description';
-COMMENT ON COLUMN eqged.pager_to_gem.gem_material IS 'GEM material';
 COMMENT ON COLUMN eqged.pager_to_gem.gem_material_type IS 'GEM material type';
+COMMENT ON COLUMN eqged.pager_to_gem.gem_material_technology IS 'GEM material technology';
 COMMENT ON COLUMN eqged.pager_to_gem.gem_material_property IS 'GEM material property';
 COMMENT ON COLUMN eqged.pager_to_gem.gem_vertical_load_system IS 'GEM vertical load system';
 COMMENT ON COLUMN eqged.pager_to_gem.gem_ductility IS 'GEM ductility';
-COMMENT ON COLUMN eqged.pager_to_gem.gem_horizontal_load_system IS 'GEM horizontal load system';
+COMMENT ON COLUMN eqged.pager_to_gem.gem_roof_system IS 'GEM floor system';
+COMMENT ON COLUMN eqged.pager_to_gem.gem_floor_system IS 'GEM floor system';
 COMMENT ON COLUMN eqged.pager_to_gem.gem_height_category IS 'GEM height category';
 COMMENT ON COLUMN eqged.pager_to_gem.gem_shorthand_form IS 'GEM taxonomy shorthand form string';
 
