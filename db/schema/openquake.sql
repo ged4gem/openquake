@@ -308,7 +308,7 @@ CREATE TABLE eqged.gadm_country_attribute (
     num_buildings_date date,
     labour_cost double precision,
     labour_cost_source VARCHAR,
-    labour_cost_date date
+    labour_cost_date date,
     gdp double precision,
     gdp_source VARCHAR,
     gdp_date date
