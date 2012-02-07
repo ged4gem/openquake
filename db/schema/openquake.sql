@@ -511,7 +511,7 @@ CREATE TABLE eqged.mapping_scheme_type (
 
 -- PAGER-GEM taxonomy conversion table
 CREATE TABLE pager_to_gem (
-    id integer,
+    id integer PRIMARY KEY,
     gem_id VARCHAR,
     gem_building_typology VARCHAR,
     pager_str VARCHAR,
