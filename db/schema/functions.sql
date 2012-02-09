@@ -523,6 +523,36 @@ $$;
 COMMENT ON FUNCTION eqged.build_gem_exposure(numeric) IS
 'Populate eqged.gem_exposure for a given study region, removing its previous version if necessary.';
 
+CREATE OR REPLACE FUNCTION eqged.get_serialized_gca(in_gadm_country_id numeric) RETURNS text
+LANGUAGE plpgsql AS
+$$
+DECLARE
+  outstring text;
+  gca_row record;
+BEGIN
+  outstring := '';
+  FOR gca_row IN
+    SELECT
+     people_dwelling, people_dwelling_source, people_dwelling_date,
+     dwellings_building, dwellings_building_source, dwellings_building_date,
+     people_building, people_building_source, people_building_date,
+     building_area, building_area_source, building_area_date,
+     replacement_cost, replacement_cost_source, replacement_cost_date,
+     num_buildings, num_buildings_source, num_buildings_date,
+     labour_cost, labour_cost_source, labour_cost_date,
+     gdp, gdp_source, gdp_date
+    FROM eqged.gadm_country_attribute WHERE gadm_country_id = in_gadm_country_id
+  LOOP
+    outstring := row(gca_row)::text || '|' || outstring;
+  END LOOP;
+
+  RETURN outstring;
+END;
+$$;
+
+COMMENT ON FUNCTION eqged.get_serialized_gca(numeric) IS
+'Return a textual representation of all the country-level attributes for a given country, as listed in eqged.gadm_country_attribute.';
+
 CREATE OR REPLACE FUNCTION eqged.get_serialized_ms(in_gadm_country_id numeric) RETURNS text
 LANGUAGE plpgsql AS
 $$
@@ -668,29 +698,13 @@ BEGIN
 
   INSERT INTO eqged.gadm_country_facts(
     gadm_country_id, gadm_country_name, gadm_country_alias, gadm_country_iso, gadm_country_shape_perimeter, gadm_country_shape_area, gadm_country_date,
-    urban_rural_source,
-    people_dwelling, people_dwelling_source, people_dwelling_date,
-    dwellings_building, dwellings_building_source, dwellings_building_date,
-    people_building, people_building_source, people_building_date,
-    building_area, building_area_source, building_area_date,
-    replacement_cost, replacement_cost_source, replacement_cost_date,
-    num_buildings, num_buildings_source, num_buildings_date,
-    labour_cost, labour_cost_source, labour_cost_date,
-    gdp, gdp_source, gdp_date,
+    urban_rural_source, gadm_country_attributes,
     population_src_id, population_src_source, population_src_description, population_src_date,
     population, populated_ratio, built_ratio, 
     mapping_schemes, gadm_country_the_geom, simple_geom)
     SELECT
       a.id, a.name, a.alias, a.iso, a.shape_perimeter, a.shape_area, a.date,
-      'GRUMP',
-      e.people_dwelling, e.people_dwelling_source, e.people_dwelling_date,
-      e.dwellings_building, e.dwellings_building_source, e.dwellings_building_date,
-      e.people_building, e.people_building_source, e.people_building_date,
-      e.building_area, e.building_area_source, e.building_area_date,
-      e.replacement_cost, e.replacement_cost_source, e.replacement_cost_date,
-      e.num_buildings, e.num_buildings_source, e.num_buildings_date,
-      e.labour_cost, e.labour_cost_source, e.labour_cost_date,
-      e.gdp, e.gdp_source, e.gdp_date,
+      'GRUMP', eqged.get_serialized_gca(a.id),
       b.id, b.source, b.description, b.date,
       c.pop_value::integer, (c.pop_count::double precision / d.num_cells::double precision), (c.pop_count::double precision / d.num_cells::double precision),
       eqged.get_serialized_ms(a.id), a.the_geom,
@@ -703,9 +717,8 @@ BEGIN
       eqged.gadm_country a,
       eqged.population_src b,
       eqged.gadm_country_population c,
-      (SELECT gadm_country_id, count(grid_point_id) num_cells FROM eqged.grid_point_country GROUP BY gadm_country_id) d,
-      eqged.gadm_country_attribute e
-    WHERE a.id = c.gadm_country_id AND b.id = c.population_src_id AND d.gadm_country_id = a.id AND e.gadm_country_id = a.id;
+      (SELECT gadm_country_id, count(grid_point_id) num_cells FROM eqged.grid_point_country GROUP BY gadm_country_id) d
+    WHERE a.id = c.gadm_country_id AND b.id = c.population_src_id AND d.gadm_country_id = a.id;
 END;
 $$;
 
