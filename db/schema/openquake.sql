@@ -345,10 +345,10 @@ CREATE TABLE eqged.gadm_country_facts (
     num_buildings_date date,
     labour_cost double precision,
     labour_cost_source VARCHAR,
-    labour_cost_date date
+    labour_cost_date date,
     gdp double precision,
     gdp_source VARCHAR,
-    gdp_date date
+    gdp_date date,
     population_src_id integer,
     population_src_source VARCHAR,
     population_src_description VARCHAR,
@@ -361,7 +361,7 @@ CREATE TABLE eqged.gadm_country_facts (
 SELECT AddGeometryColumn('eqged', 'gadm_country_facts', 'gadm_country_the_geom', 4326, 'MULTIPOLYGON', 2);
 ALTER TABLE eqged.gadm_country_facts ALTER COLUMN gadm_country_the_geom SET NOT NULL;
 SELECT AddGeometryColumn('eqged', 'gadm_country_facts', 'simple_geom', 4326, 'MULTIPOLYGON', 2);
-ALTER TABLE eqged.gadm_country_facts ALTER COLUMN simplegeom SET NOT NULL;
+ALTER TABLE eqged.gadm_country_facts ALTER COLUMN simple_geom SET NOT NULL;
 
 -- GADM country aggregate population values
 CREATE TABLE eqged.gadm_country_population (
