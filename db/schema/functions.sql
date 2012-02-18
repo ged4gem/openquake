@@ -533,14 +533,10 @@ BEGIN
   outstring := '';
   FOR gca_row IN
     SELECT
-     people_dwelling, people_dwelling_source, people_dwelling_date,
-     dwellings_building, dwellings_building_source, dwellings_building_date,
-     people_building, people_building_source, people_building_date,
+     dwellings_building, dwellings_building_date,
      building_area, building_area_source, building_area_date,
      replacement_cost, replacement_cost_source, replacement_cost_date,
-     num_buildings, num_buildings_source, num_buildings_date,
-     labour_cost, labour_cost_source, labour_cost_date,
-     gdp, gdp_source, gdp_date
+     num_buildings, num_buildings_source, num_buildings_date
     FROM eqged.gadm_country_attribute WHERE gadm_country_id = in_gadm_country_id
   LOOP
     outstring := row(gca_row)::text || '|' || outstring;
